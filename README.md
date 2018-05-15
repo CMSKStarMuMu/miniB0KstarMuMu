@@ -10,5 +10,5 @@ git init
 git clone git@github.com:sarafiorendi/miniB0KstarMuMu.git .
 scram b
 
-cd test
+cd miniB0KstarMuMu/miniKstarMuMu/test
 cmsRun miniKstarMuMu_cfg.py
