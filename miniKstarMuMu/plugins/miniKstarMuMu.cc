@@ -1107,6 +1107,11 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         }
     }
 
+    NTuple->runN   = iEvent.id().run();
+    NTuple->eventN = iEvent.id().event();
+    NTuple->bsX    = beamSpot.position().x();
+    NTuple->bsY    = beamSpot.position().y();  
+
 
 //     edm::Handle jets;
 //     iEvent.getByToken(jetToken_, jets);

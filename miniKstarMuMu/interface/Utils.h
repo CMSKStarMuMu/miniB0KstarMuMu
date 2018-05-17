@@ -1,20 +1,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <TH1D.h>
-#include <TH2D.h>
-#include <TH3D.h>
-#include <TF1.h>
-#include <TF2.h>
-#include <TF3.h>
-#include <TMatrixTSym.h>
-#include <TGraphAsymmErrors.h>
-
-#if ROOFIT
-#include <RooRealVar.h>
-#include <RooFitResult.h>
-#endif
-
 #include <string>
 #include <vector>
 
@@ -195,8 +181,6 @@ class Utils
 
 
  private:
-
-  TF1* KstMassShape;
 
   std::vector<std::string> HLTpath;
   std::vector<double> VecHLTCutVar1;

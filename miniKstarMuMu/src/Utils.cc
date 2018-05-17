@@ -3,7 +3,6 @@
 // #include "B0KstarMM/B0KstMuMu/interface/Utils.h"
 // #include "B0KstarMM/B0KstMuMu/interface/ReadParameters.h"
 
-#include <TAxis.h>
 #include <TMath.h>
 #include <TFile.h>
 
@@ -47,15 +46,15 @@ Utils::Utils (bool rightFlavorTag)
 
   PI = 3.141592653589793;
 
-  KstMassShape = new TF1("KstMassShape",
-			 "2*sqrt(2)*[0]*[1]* sqrt([0]*[0] * ([0]*[0] + [1]*[1])) / (TMath::Pi()*sqrt([0]*[0] + sqrt([0]*[0] * ([0]*[0] + [1]*[1])))) / ((x*x - [0]*[0]) * (x*x - [0]*[0]) + [0]*[0]*[1]*[1])",
-			 0.0,kstMass*2.);
-  // Breit-Wigner distribution:
-  // [0]: mass of the resonance
-  // [1]: width of the resonance
-  KstMassShape->SetParameter(0,kstMass);
-  KstMassShape->SetParameter(1,kstSigma);
-  KstMassShape->SetParNames("Mean","Width");
+//   KstMassShape = new TF1("KstMassShape",
+// 			 "2*sqrt(2)*[0]*[1]* sqrt([0]*[0] * ([0]*[0] + [1]*[1])) / (TMath::Pi()*sqrt([0]*[0] + sqrt([0]*[0] * ([0]*[0] + [1]*[1])))) / ((x*x - [0]*[0]) * (x*x - [0]*[0]) + [0]*[0]*[1]*[1])",
+// 			 0.0,kstMass*2.);
+//   // Breit-Wigner distribution:
+//   // [0]: mass of the resonance
+//   // [1]: width of the resonance
+//   KstMassShape->SetParameter(0,kstMass);
+//   KstMassShape->SetParameter(1,kstSigma);
+//   KstMassShape->SetParNames("Mean","Width");
 
   // Define whether to compute the efficiency with good-tagged or mis-tagged events
   RIGHTflavorTAG = rightFlavorTag;
