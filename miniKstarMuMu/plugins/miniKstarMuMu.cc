@@ -70,6 +70,8 @@ miniKstarMuMu::miniKstarMuMu(const edm::ParameterSet& iConfig):
     prunedGenToken_ (consumes<reco::GenParticleCollection >      (iConfig.getParameter<edm::InputTag>("pruned"))),
     packedGenToken_ (consumes<pat::PackedGenParticleCollection>  (iConfig.getParameter<edm::InputTag>("packed"))),
 
+    puToken_        (consumes<std::vector< PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("PuInfoTag"))),
+
     // # Load HLT-trigger cuts #
     CLMUMUVTX          ( iConfig.getUntrackedParameter<double>("MuMuVtxCL")      ),
     LSMUMUBS           ( iConfig.getUntrackedParameter<double>("MuMuLsBS")       ),
@@ -1155,6 +1157,18 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (!iEvent.isRealData())
     {
+      // #################################
+      // # Save pileup information in MC #
+      // #################################
+      edm::Handle< std::vector<PileupSummaryInfo> > PupInfo;
+      iEvent.getByToken(puToken_, PupInfo);
+      for (std::vector<PileupSummaryInfo>::const_iterator PVI = PupInfo->begin(); PVI != PupInfo->end(); PVI++)
+      {
+        NTuple->bunchXingMC->push_back(PVI->getBunchCrossing());
+        NTuple->numInteractionsMC->push_back(PVI->getPU_NumInteractions());
+        NTuple->trueNumInteractionsMC->push_back(PVI->getTrueNumInteractions());
+      }
+
       MonteCarloStudies(iEvent) ;
     }
 

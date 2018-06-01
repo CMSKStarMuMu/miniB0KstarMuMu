@@ -47,6 +47,8 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
     packed = cms.InputTag("packedGenParticles"),
     pruned = cms.InputTag("prunedGenParticles"),
 
+    PuInfoTag        = cms.InputTag("slimmedAddPileupInfo"),
+
     ## HLT selections
     MuMuVtxCL        = cms.untracked.double(0.01),  # mu-mu Vtx CL [0.1]
     MuMuLsBS         = cms.untracked.double(2  ),    # mu-mu L/sigma w/respect to BS [3.0]
