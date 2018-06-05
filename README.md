@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # miniB0KstarMuMu
 
 **ntuple production**  
@@ -18,3 +19,6 @@ scripts to convert ntuples with array as branches into plain ntuples; multiple c
 
 **test/flat_ntuples/plot**  
 scripts for plotting distributions starting from flat ntuples  
+=======
+# miniB0KstarMuMu
+>>>>>>> mib/master
