@@ -64,7 +64,8 @@
 miniKstarMuMu::miniKstarMuMu(const edm::ParameterSet& iConfig):
     vtxToken_       (consumes<reco::VertexCollection>            (iConfig.getParameter<edm::InputTag>("vertices"))),
     muonToken_      (consumes<pat::MuonCollection>               (iConfig.getParameter<edm::InputTag>("muons"))),
-    trackToken_     (consumes<pat::PackedCandidateCollection>    (iConfig.getParameter<edm::InputTag>("tracks"))),
+    trackToken_     (consumes<reco::TrackCollection>             (iConfig.getParameter<edm::InputTag>("tracks"))),
+//     trackToken_     (consumes<pat::PackedCandidateCollection>    (iConfig.getParameter<edm::InputTag>("tracks"))),
     beamSpotToken_  (consumes<reco::BeamSpot>                    (iConfig.getParameter<edm::InputTag>("beamSpot"))),
 
     prunedGenToken_ (consumes<reco::GenParticleCollection >      (iConfig.getParameter<edm::InputTag>("pruned"))),
@@ -143,9 +144,10 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     const ParticleMass pionMass = Utility->pionMass;
     const ParticleMass kaonMass = Utility->kaonMass;
 
+    std::pair <bool,Measurement1D> theDCAXVtx;
     std::vector<reco::CandidatePtr> footprint;
-    unsigned int itrkp = 0;
-    unsigned int itrkm = 0;
+//     unsigned int itrkp = 0;
+//     unsigned int itrkm = 0;
 
     std::string MuMCat;
     std::string MuPCat;
@@ -168,12 +170,17 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
     if (vertices->empty()) return; // skip the event if no PV found
+    reco::Vertex bestVtx;
+    for (std::vector<reco::Vertex>::const_iterator iVertex = vertices->begin(); iVertex != vertices->end(); iVertex++) { 
+      bestVtx = *(iVertex); if (bestVtx.isValid() == true) break; 
+    }
 
     edm::Handle<pat::MuonCollection> muons;
     iEvent.getByToken(muonToken_, muons);
 
     // Get PAT Tracks
-    edm::Handle<pat::PackedCandidateCollection> tracks;
+    edm::Handle<reco::TrackCollection> tracks;
+//     edm::Handle<pat::PackedCandidateCollection> tracks;
     iEvent.getByToken(trackToken_, tracks);
 
     for (const pat::Muon &mum : *muons) {
@@ -394,19 +401,31 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             reco::Vertex mumu_rv =  reco::Vertex( mumu_GP, mumu_error, mumu_chi2, mumu_ndof, 2 );
 
 
-            itrkm = -1;
-            std::cout << "now looping on tracks" << std::endl;
-            for (const pat::PackedCandidate &tkm : *tracks) {
-                itrkm++;
-                if (tkm.charge() != -1 || !tkm.hasTrackDetails() ) continue;
-                if (tkm.pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
-                if (fabs(tkm.eta()) > MUMAXETA)                    continue;
-                if (!tkm.trackHighPurity())                        continue;
+//            itrkm = -1;
+            for (uint itrkm =0 ;  itrkm < tracks->size(); itrkm++){
+                reco::TrackRef tkm(tracks,itrkm) ;                                                
+                if (! tkm->quality(reco::TrackBase::highPurity))          continue;
 
-                Trackm = &tkm.pseudoTrack();
-                if (Trackm == nullptr)  continue;
+                if (tkm->pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
+                if (fabs(tkm->eta()) > MUMAXETA)                    continue;
+                if (tkm->charge() != -1 ) continue;
+//                 if (!tkm.trackHighPurity())                        continue;
+//                 Trackm = &tkm.pseudoTrack();
+//                 if (Trackm == nullptr)  continue;
 
-                const reco::TransientTrack TrackmTT((*Trackm), &(*bFieldHandle));
+                const reco::TransientTrack TrackmTT((*tkm), &(*bFieldHandle));
+
+//             for (const pat::PackedCandidate &tkm : *tracks) {
+//                 itrkm++;
+//                 if (tkm.charge() != -1 || !tkm.hasTrackDetails() ) continue;
+//                 if (tkm.pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
+//                 if (fabs(tkm.eta()) > MUMAXETA)                    continue;
+//                 if (!tkm.trackHighPurity())                        continue;
+// 
+//                 Trackm = &tkm.pseudoTrack();
+//                 if (Trackm == nullptr)  continue;
+// 
+//                 const reco::TransientTrack TrackmTT((*Trackm), &(*bFieldHandle));
 
                 // ######################################
                 // # Compute K*0 track- DCA to BeamSpot #
@@ -424,26 +443,34 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                   if (printMsg) std::cout << __LINE__ << " : continue --> track- DCA/sigma with respect to BeamSpot is too small: " << DCAKstTrkmBS << "+/-" << DCAKstTrkmBSErr << std::endl;
                   continue;
                 }
-                if (printMsg) std::cout << __LINE__ << "Track charge - : pt " << tkm.pt() << " eta : " << tkm.eta() << "  phi: " << tkm.phi() << std::endl;
+                if (printMsg) std::cout << __LINE__ << "Track charge - : pt " << tkm->pt() << " eta : " << tkm->eta() << "  phi: " << tkm->phi() << std::endl;
 
 
 
-                itrkp = -1;
-
-                for (const pat::PackedCandidate &tkp : *tracks) {
+//                itrkp = -1;
+                for (uint itrkp =0 ;  itrkp < tracks->size(); itrkp++){
                     
-                    itrkp++;
+                    reco::TrackRef tkp(tracks,itrkp) ;                                                
+                    if (! tkp->quality(reco::TrackBase::highPurity))          continue;
 
-                    if (tkp.charge() != +1 || !tkp.hasTrackDetails() ) continue;
-                    if (tkp.pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
-                    if (fabs(tkp.eta()) > MUMAXETA)                    continue;
-                    if (!tkp.trackHighPurity())                        continue;
-    
-//                     std::cout << tkp.pdgId() << std::endl;
-                    Trackp = &tkp.pseudoTrack();
-                    if (Trackp == nullptr)  continue;
-        
-                    const reco::TransientTrack TrackpTT((*Trackp), &(*bFieldHandle));
+                    if (tkp->charge() != +1 ) continue;
+                    if (tkp->pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
+                    if (fabs(tkp->eta()) > MUMAXETA)                    continue;
+                    const reco::TransientTrack TrackpTT((*tkp), &(*bFieldHandle));
+
+//                 for (const pat::PackedCandidate &tkp : *tracks) {
+//                     
+//                     itrkp++;
+// 
+//                     if (tkp.charge() != +1 || !tkp.hasTrackDetails() ) continue;
+//                     if (tkp.pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
+//                     if (fabs(tkp.eta()) > MUMAXETA)                    continue;
+//                     if (!tkp.trackHighPurity())                        continue;
+//     
+//                     Trackp = &tkp.pseudoTrack();
+//                     if (Trackp == nullptr)  continue;
+//         
+//                     const reco::TransientTrack TrackpTT((*Trackp), &(*bFieldHandle));
 
                     // ######################################
                     // # Compute K*0 track+ DCA to BeamSpot #
@@ -646,24 +673,54 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     bool foundTkmMum = false; 
                     bool foundTkpMup = false; 
                     
+                    reco::TrackRef muTrackTmp;
                     for (const pat::Muon &imutmp : *muons) 
                     {
-                    
-                        if (deltaR(tkm,imutmp) > 0.2) continue;
-                        footprint.clear();
-                        for (unsigned int i = 0, n = imutmp.numberOfSourceCandidatePtrs(); i < n; ++i) {
-                            footprint.push_back(imutmp.sourceCandidatePtr(i));
+                        muTrackTmp = imutmp.innerTrack();
+                        if (muTrackTmp.isNull() == true) continue;
+                        
+//                             std::cout << deltaR(tkm->eta(),tkm->phi(),imutmp.eta(),imutmp.phi()) << std::endl;
+//                             std::cout << "mu:  " << imutmp.eta() << " " << imutmp.phi() << " " << imutmp.pt() << std::endl;
+//                             std::cout << "tk   " << tkm->eta()   << " " << tkm->phi()   << " " << tkm->pt() << std::endl;
+//                             std::cout << "deltaPt   " << tkm->pt() - imutmp.pt()   << std::endl;
+                        if ( muTrackTmp->charge() == -1 && 
+                             deltaR(tkm->eta(),tkm->phi(),imutmp.eta(),imutmp.phi()) < 0.0005 && 
+                             abs( tkm->pt() - imutmp.pt() ) < 0.001
+                            ) {
+// 			                if (tkm == muTrackTmp)
+// 			  	            {
+//                                 std::cout << "same track" << std::endl;
+			  	                MuMCat.clear();
+			  	                MuMCat.append(getMuCat(imutmp));
+// 			  	            }
                         }
-
-                        // pfcandidate-based footprint removal
-                        if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(tracks,itrkm)) != footprint.end()) {
-                            MuMCat.clear();
-                            MuMCat.append(getMuCat(imutmp));
-                        }  
-                        if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(tracks,itrkp)) != footprint.end()) {
-                            MuPCat.clear();
-                            MuPCat.append(getMuCat(imutmp));
-                        }  
+                        if ( muTrackTmp->charge() == +1 && 
+                             deltaR(tkp->eta(),tkp->phi(),imutmp.eta(),imutmp.phi()) < 0.0005 &&
+                             abs( tkp->pt() - imutmp.pt() ) < 0.001
+                             ) {
+//     			            if (tkp == muTrackTmp)
+// 	    		  	        {
+		    	  	           MuPCat.clear();
+			      	           MuPCat.append(getMuCat(imutmp));
+// 			  	            }
+			  	        }    
+//                         if (deltaR(tkm,imutmp) > 0.2) continue;
+//                         footprint.clear();
+//                         std::cout << "number of source candidates: " << imutmp.numberOfSourceCandidatePtrs() << std::endl;
+//                         for (unsigned int i = 0, n = imutmp.numberOfSourceCandidatePtrs(); i < n; ++i) {
+//                             footprint.push_back(imutmp.sourceCandidatePtr(i));
+//                             std::cout << "src candidate " << i << "   " <<  imutmp.sourceCandidatePtr(i)->pt() << std::endl;
+//                         }
+//     
+//                         // pfcandidate-based footprint removal
+//                         if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(tracks,itrkm)) != footprint.end()) {
+//                             MuMCat.clear();
+//                             MuMCat.append(getMuCat(imutmp));
+//                         }  
+//                         if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(tracks,itrkp)) != footprint.end()) {
+//                             MuPCat.clear();
+//                             MuPCat.append(getMuCat(imutmp));
+//                         }  
                     }
                     
  
@@ -931,9 +988,9 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     // ################
                     // # Save: Track- #
                     // ################
-                    NTuple->kstTrkmHighPurity->push_back( (int)Trackm->quality(reco::Track::highPurity));
+                    NTuple->kstTrkmHighPurity->push_back( (int)tkm->quality(reco::Track::highPurity));
                     NTuple->kstTrkmCL->push_back(TMath::Prob(TrackmTT.chi2(), static_cast<int>(rint(TrackmTT.ndof()))));
-                    NTuple->kstTrkmNormChi2->push_back(Trackm->normalizedChi2());
+                    NTuple->kstTrkmNormChi2->push_back(tkm->normalizedChi2());
                     NTuple->kstTrkmPx->push_back(refitTrkmTT.track().momentum().x());
                     NTuple->kstTrkmPy->push_back(refitTrkmTT.track().momentum().y());
                     NTuple->kstTrkmPz->push_back(refitTrkmTT.track().momentum().z());
@@ -943,28 +1000,31 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     NTuple->kstTrkmDCABS->push_back(DCAKstTrkmBS);
                     NTuple->kstTrkmDCABSE->push_back(DCAKstTrkmBSErr);
       
-                    NTuple->kstTrkmFracHits->push_back(static_cast<double>(Trackm->hitPattern().numberOfValidHits()) / static_cast<double>(Trackm->hitPattern().numberOfValidHits() +
-                                                                           Trackm->hitPattern().numberOfLostHits(reco::HitPattern::TRACK_HITS) +
-                                                                           Trackm->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS)));
-//                     theDCAXVtx = IPTools::absoluteTransverseImpactParameter(TrackmTT, bestVtxReFit);
-//                     NTuple->kstTrkmdxyVtx->push_back(theDCAXVtx.second.value());
-//                     NTuple->kstTrkmdzVtx->push_back(TrackmTT.track().dz(bestVtxReFit.position()));
+                    NTuple->kstTrkmFracHits->push_back(static_cast<double>(tkm->hitPattern().numberOfValidHits()) / static_cast<double>(tkm->hitPattern().numberOfValidHits() +
+                                                                           tkm->hitPattern().numberOfLostHits(reco::HitPattern::TRACK_HITS) +
+                                                                           tkm->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS)));
+//                     NTuple->kstTrkmFracHits->push_back(static_cast<double>(Trackm->hitPattern().numberOfValidHits()) / static_cast<double>(Trackm->hitPattern().numberOfValidHits() +
+//                                                                            Trackm->hitPattern().numberOfLostHits(reco::HitPattern::TRACK_HITS) +
+//                                                                            Trackm->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS)));
+                    theDCAXVtx = IPTools::absoluteTransverseImpactParameter(TrackmTT, bestVtx);
+                    NTuple->kstTrkmdxyVtx->push_back(theDCAXVtx.second.value());
+                    NTuple->kstTrkmdzVtx->push_back(TrackmTT.track().dz(bestVtx.position()));
       
                     NTuple->kstTrkmMuMatch->push_back(MuMCat);
       
                     // I do NOT include the number of missing outer hits because the hadron might interact
-                    NTuple->kstTrkmNPixHits->push_back(Trackm->hitPattern().numberOfValidPixelHits());
-                    NTuple->kstTrkmNPixLayers->push_back(Trackm->hitPattern().pixelLayersWithMeasurement());  
-                    NTuple->kstTrkmNTrkHits->push_back(Trackm->hitPattern().numberOfValidTrackerHits());
-                    NTuple->kstTrkmNTrkLayers->push_back(Trackm->hitPattern().trackerLayersWithMeasurement());
+                    NTuple->kstTrkmNPixHits  ->push_back(tkm->hitPattern().numberOfValidPixelHits());
+                    NTuple->kstTrkmNPixLayers->push_back(tkm->hitPattern().pixelLayersWithMeasurement());  
+                    NTuple->kstTrkmNTrkHits  ->push_back(tkm->hitPattern().numberOfValidTrackerHits());
+                    NTuple->kstTrkmNTrkLayers->push_back(tkm->hitPattern().trackerLayersWithMeasurement());
       
       
                     // ################
                     // # Save: Track+ #
                     // ################
-                    NTuple->kstTrkpHighPurity->push_back((int)Trackp->quality(reco::Track::highPurity));
+                    NTuple->kstTrkpHighPurity->push_back((int)tkp->quality(reco::Track::highPurity));
                     NTuple->kstTrkpCL->push_back(TMath::Prob(TrackpTT.chi2(), static_cast<int>(rint(TrackpTT.ndof()))));
-                    NTuple->kstTrkpNormChi2->push_back(Trackp->normalizedChi2());
+                    NTuple->kstTrkpNormChi2->push_back(tkp->normalizedChi2());
                     NTuple->kstTrkpPx->push_back(refitTrkpTT.track().momentum().x());
                     NTuple->kstTrkpPy->push_back(refitTrkpTT.track().momentum().y());
                     NTuple->kstTrkpPz->push_back(refitTrkpTT.track().momentum().z());
@@ -974,20 +1034,20 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     NTuple->kstTrkpDCABS->push_back(DCAKstTrkpBS);
                     NTuple->kstTrkpDCABSE->push_back(DCAKstTrkpBSErr);
       
-                    NTuple->kstTrkpFracHits->push_back(static_cast<double>(Trackp->hitPattern().numberOfValidHits()) / static_cast<double>(Trackp->hitPattern().numberOfValidHits() +
-                                                                           Trackp->hitPattern().numberOfLostHits(reco::HitPattern::TRACK_HITS) +
-                                                                           Trackp->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS)));
-//                     theDCAXVtx = IPTools::absoluteTransverseImpactParameter(TrackpTT, bestVtxReFit);
-//                     NTuple->kstTrkpdxyVtx->push_back(theDCAXVtx.second.value());
-//                     NTuple->kstTrkpdzVtx->push_back(TrackpTT.track().dz(bestVtxReFit.position()));
+                    NTuple->kstTrkpFracHits->push_back(static_cast<double>(tkp->hitPattern().numberOfValidHits()) / static_cast<double>(tkp->hitPattern().numberOfValidHits() +
+                                                                           tkp->hitPattern().numberOfLostHits(reco::HitPattern::TRACK_HITS) +
+                                                                           tkp->hitPattern().numberOfLostHits(reco::HitPattern::MISSING_INNER_HITS)));
+                    theDCAXVtx = IPTools::absoluteTransverseImpactParameter(TrackpTT, bestVtx);
+                    NTuple->kstTrkpdxyVtx->push_back(theDCAXVtx.second.value());
+                    NTuple->kstTrkpdzVtx->push_back(TrackpTT.track().dz(bestVtx.position()));
       
                     NTuple->kstTrkpMuMatch->push_back(MuPCat);
       
                     // I do NOT include the number of missing outer hits because the hadron might interact
-                    NTuple->kstTrkpNPixHits->push_back(Trackp->hitPattern().numberOfValidPixelHits());
-                    NTuple->kstTrkpNPixLayers->push_back(Trackp->hitPattern().pixelLayersWithMeasurement());  
-                    NTuple->kstTrkpNTrkHits->push_back(Trackp->hitPattern().numberOfValidTrackerHits());
-                    NTuple->kstTrkpNTrkLayers->push_back(Trackp->hitPattern().trackerLayersWithMeasurement());
+                    NTuple->kstTrkpNPixHits  ->push_back(tkp->hitPattern().numberOfValidPixelHits());
+                    NTuple->kstTrkpNPixLayers->push_back(tkp->hitPattern().pixelLayersWithMeasurement());  
+                    NTuple->kstTrkpNTrkHits  ->push_back(tkp->hitPattern().numberOfValidTrackerHits());
+                    NTuple->kstTrkpNTrkLayers->push_back(tkp->hitPattern().trackerLayersWithMeasurement());
       
 // /*      
 //                     // Save trigger matching for the 4 tracks

@@ -62,7 +62,7 @@ class miniKstarMuMu : public edm::EDAnalyzer {
       // ----------member data ---------------------------
       edm::EDGetTokenT<reco::VertexCollection>         vtxToken_;
       edm::EDGetTokenT<pat::MuonCollection>            muonToken_;
-      edm::EDGetTokenT<pat::PackedCandidateCollection> trackToken_;
+      edm::EDGetTokenT<reco::TrackCollection>          trackToken_;
       edm::EDGetTokenT<reco::BeamSpot>                 beamSpotToken_;
 
       edm::EDGetTokenT<reco::GenParticleCollection>         prunedGenToken_;
