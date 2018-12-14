@@ -29,11 +29,14 @@ process.source = cms.Source("PoolSource",
 
 taskB0 = cms.Task()
 
-process.selectedPFCandidatesHP = cms.EDFilter("PATPackedCandidateSelector",
-    src = cms.InputTag("packedPFCandidates"),
-    cut = cms.string("pt() > 0.8 && abs(eta()) < 2.5 && trackHighPurity() > 0")
-)
-taskB0.add(process.selectedPFCandidatesHP)
+process.load('PhysicsTools.PatAlgos.slimming.unpackedTracksAndVertices_cfi')
+taskB0.add(process.unpackedTracksAndVertices)
+
+# process.selectedPFCandidatesHP = cms.EDFilter("PATPackedCandidateSelector",
+#     src = cms.InputTag("packedPFCandidates"),
+#     cut = cms.string("pt() > 0.8 && abs(eta()) < 2.5 && trackHighPurity() > 0")
+# )
+# taskB0.add(process.selectedPFCandidatesHP)
 
 # process.dump=cms.EDAnalyzer('EventContentAnalyzer')
 
@@ -41,7 +44,8 @@ taskB0.add(process.selectedPFCandidatesHP)
 process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
     vertices = cms.InputTag("offlineSlimmedPrimaryVertices"),
     muons    = cms.InputTag("slimmedMuons"),
-    tracks   = cms.InputTag("selectedPFCandidatesHP"),
+    tracks    = cms.InputTag("unpackedTracksAndVertices"),#"selectedPFCandidatesHP"),
+#     tracks   = cms.InputTag("selectedPFCandidatesHP"),
     beamSpot = cms.InputTag("offlineBeamSpot"),
 
     packed = cms.InputTag("packedGenParticles"),
@@ -51,23 +55,23 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
 
     ## HLT selections
     MuMuVtxCL        = cms.untracked.double(0.01),  # mu-mu Vtx CL [0.1]
-    MuMuLsBS         = cms.untracked.double(2  ),    # mu-mu L/sigma w/respect to BS [3.0]
-    DCAMuMu          = cms.untracked.double(0.5),    # mu-mu DCA w/respect to each other [0.5 cm]
-    DCAMuBS          = cms.untracked.double(2.0),    # mu DCA w/respect to BS [2.0 cm]
-    cosAlphaMuMuBS   = cms.untracked.double(-2),    # mu-mu cos(alpha) w/respect to BS [0.9]
-    MinMupT          = cms.untracked.double(2.5),    # mu min pT [4.0 GeV/c]
-    MuEta            = cms.untracked.double(2.4),    # mu max eta [2.4]
-    MuMupT           = cms.untracked.double(1. ),    # mu-mu min pT [6.9 GeV/c]
-    MinMuMuMass      = cms.untracked.double(1.0),    # mu-mu min inv. mass [1.0 GeV/c2]
-    MaxMuMuMass      = cms.untracked.double(4.8),    # mu-mu max inv. mass [4.8 GeV/c2]
+    MuMuLsBS         = cms.untracked.double(2   ),    # mu-mu L/sigma w/respect to BS [3.0]
+    DCAMuMu          = cms.untracked.double(0.5 ),    # mu-mu DCA w/respect to each other [0.5 cm]
+    DCAMuBS          = cms.untracked.double(2.0 ),    # mu DCA w/respect to BS [2.0 cm]
+    cosAlphaMuMuBS   = cms.untracked.double(-2  ),    # mu-mu cos(alpha) w/respect to BS [0.9]
+    MinMupT          = cms.untracked.double(3.5 ),    # mu min pT [4.0 GeV/c]
+    MuEta            = cms.untracked.double(2.4 ),    # mu max eta [2.4]
+    MuMupT           = cms.untracked.double(1.  ),    # mu-mu min pT [6.9 GeV/c]
+    MinMuMuMass      = cms.untracked.double(1.0 ),    # mu-mu min inv. mass [1.0 GeV/c2]
+    MaxMuMuMass      = cms.untracked.double(4.8 ),    # mu-mu max inv. mass [4.8 GeV/c2]
     ## Cand pre-selections
-    MinB0Mass        = cms.untracked.double(4.5),    # B0 mass lower limit [4.5 GeV/c2]
-    MaxB0Mass        = cms.untracked.double(6.5),    # B0 mass upper limit [6.5 GeV/c2]
+    MinB0Mass        = cms.untracked.double(4.5 ),    # B0 mass lower limit [4.5 GeV/c2]
+    MaxB0Mass        = cms.untracked.double(6.5 ),    # B0 mass upper limit [6.5 GeV/c2]
     B0VtxCL          = cms.untracked.double(0.01),  # B0 Vtx CL [0.01]
-    KstMass          = cms.untracked.double(3.0),    # K*0 (OR K*0bar) mass window sigma [3.0]
-    HadDCASBS        = cms.untracked.double(2.0),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
-    HadpT            = cms.untracked.double(1. ),    # hadron min pT [0.8 GeV/c] (also in HLT)
-    MaxB0RoughMass   = cms.untracked.double(25.),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
+    KstMass          = cms.untracked.double(3.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
+    HadDCASBS        = cms.untracked.double(1.0 ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
+    HadpT            = cms.untracked.double( .8 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
+    MaxB0RoughMass   = cms.untracked.double(25. ),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
 
     printMsg         = cms.untracked.bool(False)
 )
@@ -79,7 +83,8 @@ process.TFileService = cms.Service('TFileService',
     closeFileFast = cms.untracked.bool(True)
 )
 
-process.p = cms.Path(process.selectedPFCandidatesHP * process.B0KstMuMu)
+process.p = cms.Path(process.unpackedTracksAndVertices * process.B0KstMuMu)
+# process.p = cms.Path(process.selectedPFCandidatesHP * process.B0KstMuMu)
 # process.Tracer = cms.Service("Tracer")
 
 '''
