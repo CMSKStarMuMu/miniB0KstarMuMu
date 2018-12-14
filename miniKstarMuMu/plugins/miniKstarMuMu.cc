@@ -14,6 +14,7 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -49,13 +50,27 @@
 #define MUVARTOLE 0.01  // [From 0 to 1]
 #define HADVARTOLE 0.10 // [From 0 to 1]
 
+#define PRIVTXNDOF  4.0
+#define PRIVTXMAXZ 50.0 // [cm]
+#define PRIVTXMAXR  2.0 // [cm]
+
+// #######################
+// # Truth matching cuts #
+// #######################
+#define RCUTMU 0.004 // [eta-phi]
+#define RCUTTRK 0.3  // [eta-phi]
 
 
 miniKstarMuMu::miniKstarMuMu(const edm::ParameterSet& iConfig):
-    vtxToken_       (consumes<reco::VertexCollection>          (iConfig.getParameter<edm::InputTag>("vertices"))),
-    muonToken_      (consumes<pat::MuonCollection>             (iConfig.getParameter<edm::InputTag>("muons"))),
-    trackToken_     (consumes<pat::PackedCandidateCollection>  (iConfig.getParameter<edm::InputTag>("tracks"))),
-    beamSpotToken_  (consumes<reco::BeamSpot>                  (iConfig.getParameter<edm::InputTag>("beamSpot"))),
+    vtxToken_       (consumes<reco::VertexCollection>            (iConfig.getParameter<edm::InputTag>("vertices"))),
+    muonToken_      (consumes<pat::MuonCollection>               (iConfig.getParameter<edm::InputTag>("muons"))),
+    trackToken_     (consumes<pat::PackedCandidateCollection>    (iConfig.getParameter<edm::InputTag>("tracks"))),
+    beamSpotToken_  (consumes<reco::BeamSpot>                    (iConfig.getParameter<edm::InputTag>("beamSpot"))),
+
+    prunedGenToken_ (consumes<reco::GenParticleCollection >      (iConfig.getParameter<edm::InputTag>("pruned"))),
+    packedGenToken_ (consumes<pat::PackedGenParticleCollection>  (iConfig.getParameter<edm::InputTag>("packed"))),
+
+    puToken_        (consumes<std::vector< PileupSummaryInfo>>(iConfig.getParameter<edm::InputTag>("PuInfoTag"))),
 
     // # Load HLT-trigger cuts #
     CLMUMUVTX          ( iConfig.getUntrackedParameter<double>("MuMuVtxCL")      ),
@@ -93,18 +108,20 @@ void
 miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
-	// Get magnetic field
-	edm::ESHandle<MagneticField> bFieldHandle;
-	iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);      
+    // Get magnetic field
+    edm::ESHandle<MagneticField> bFieldHandle;
+    iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);      
     // Get BeamSpot
     edm::Handle<reco::BeamSpot> beamSpotH;
     iEvent.getByToken(beamSpotToken_, beamSpotH);
     reco::BeamSpot beamSpot = *beamSpotH;
 
+
     reco::TrackRef muTrackm;
     reco::TrackRef muTrackp;
-    const reco::Track *Trackm;
-    const reco::Track *Trackp;
+    const reco::Track* Trackm;
+    const reco::Track* Trackp;
+
     double pT;
     double eta;
     double chi;
@@ -126,6 +143,12 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     const ParticleMass pionMass = Utility->pionMass;
     const ParticleMass kaonMass = Utility->kaonMass;
 
+    std::vector<reco::CandidatePtr> footprint;
+    unsigned int itrkp = 0;
+    unsigned int itrkm = 0;
+
+    std::string MuMCat;
+    std::string MuPCat;
 
     TLorentzVector  mum_lv;
     TLorentzVector  mup_lv;
@@ -140,15 +163,11 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     AdaptiveVertexFitter theVtxFitter;                              // Vertex fitter in nominal reconstruction
     KinematicParticleVertexFitter PartVtxFitter;                    // Vertex fit with vtx constraint
   
-    std::vector<float> mum_isovec, mup_isovec, trkm_isovec, trkp_isovec; 
-
-    
-//     std::cout <<iEvent.id() << std::endl;
+//     std::vector<float> mum_isovec, mup_isovec, trkm_isovec, trkp_isovec; 
 
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
     if (vertices->empty()) return; // skip the event if no PV found
-    const reco::Vertex &PV = vertices->front();
 
     edm::Handle<pat::MuonCollection> muons;
     iEvent.getByToken(muonToken_, muons);
@@ -160,14 +179,14 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::sort( muons.begin(), muons.end(), [] (pat::Muon const * ida, reco::Candidate const * jda){return ida->pt() > jda->pt();} );
     for (const pat::Muon &mum : *muons) {
         muTrackm = mum.innerTrack();
-        if ((muTrackm.isNull() == true) || (muTrackm->charge() != -1)) continue;
+        if ((muTrackm.isNull() == true) || (muTrackm->charge() != -1))   continue;
 
         pT  = muTrackm -> pt();
         eta = muTrackm -> eta();
 
         if ((pT < (MUMINPT*(1.0-MUVARTOLE))) || (fabs(eta) > (MUMAXETA*(1.0+MUVARTOLE))))
         {
-          std::cout << __LINE__ << " : break --> too low pT of mu- : " << pT  << " or " << mum.pt() << " or too high eta : " << eta << std::endl;
+          if (printMsg) std::cout << __LINE__ << " : break --> too low pT of mu- : " << pT  << " or " << mum.pt() << " or too high eta : " << eta << std::endl;
           break;
         }
 
@@ -320,17 +339,17 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
               continue;
             }
 
-			// ############################################
-			// # Cut on the dimuon invariant mass and pT #
-			// ############################################
-			pT = sqrt((refitMumTT.track().momentum().x() + refitMupTT.track().momentum().x()) * (refitMumTT.track().momentum().x() + refitMupTT.track().momentum().x()) +
-					  (refitMumTT.track().momentum().y() + refitMupTT.track().momentum().y()) * (refitMumTT.track().momentum().y() + refitMupTT.track().momentum().y()));
-			double MuMuInvMass = mumu_KP->currentState().mass();
-			if ((pT < MINMUMUPT) || (MuMuInvMass < MINMUMUINVMASS) || (MuMuInvMass > MAXMUMUINVMASS))
-			{
-			  if (printMsg) std::cout << __LINE__ << " : continue --> no good mumu pair pT: " << pT << "\tinv. mass: " << MuMuInvMass << std::endl;
-			  continue;
-			}
+            // ############################################
+            // # Cut on the dimuon invariant mass and pT #
+            // ############################################
+            pT = sqrt((refitMumTT.track().momentum().x() + refitMupTT.track().momentum().x()) * (refitMumTT.track().momentum().x() + refitMupTT.track().momentum().x()) +
+                      (refitMumTT.track().momentum().y() + refitMupTT.track().momentum().y()) * (refitMumTT.track().momentum().y() + refitMupTT.track().momentum().y()));
+            double MuMuInvMass = mumu_KP->currentState().mass();
+            if ((pT < MINMUMUPT) || (MuMuInvMass < MINMUMUINVMASS) || (MuMuInvMass > MAXMUMUINVMASS))
+            {
+              if (printMsg) std::cout << __LINE__ << " : continue --> no good mumu pair pT: " << pT << "\tinv. mass: " << MuMuInvMass << std::endl;
+              continue;
+            }
 
             // ######################################################
             // # Compute the distance between mumu vtx and BeamSpot #
@@ -375,23 +394,21 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             float mumu_ndof      = mumu_KV -> degreesOfFreedom();
             reco::Vertex mumu_rv =  reco::Vertex( mumu_GP, mumu_error, mumu_chi2, mumu_ndof, 2 );
 
+
+            itrkm = -1;
+            std::cout << "now looping on tracks" << std::endl;
             for (const pat::PackedCandidate &tkm : *tracks) {
-                Trackm = tkm.bestTrack();
-                if (Trackm->charge() != -1) continue;
-//                 if ((Trackm->isNull() 	== true) || (Trackm->charge() != -1)) continue;
+                itrkm++;
+                if (tkm.charge() != -1 || !tkm.hasTrackDetails() ) continue;
+                if (tkm.pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
+                if (fabs(tkm.eta()) > MUMAXETA)                    continue;
+                if (!tkm.trackHighPurity())                        continue;
+
+                Trackm = &tkm.pseudoTrack();
+                if (Trackm == nullptr)  continue;
 
                 const reco::TransientTrack TrackmTT((*Trackm), &(*bFieldHandle));
 
-                // ##########################
-                // # Track- pT and eta cuts #
-                // ##########################
-                pT = TrackmTT.track().pt();
-                if (pT < (MINHADPT*(1.0-HADVARTOLE)))
-                {
-                  if (printMsg) std::cout << __LINE__ << " : break --> too low pT of track- : " << pT << std::endl;
-                  break;
-                }
-                
                 // ######################################
                 // # Compute K*0 track- DCA to BeamSpot #
                 // ######################################
@@ -405,23 +422,30 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 double DCAKstTrkmBSErr = theDCAXBS.perigeeError().transverseImpactParameterError();
                 if (fabs(DCAKstTrkmBS/DCAKstTrkmBSErr) < HADDCASBS)
                 {
-//                   if (printMsg) std::cout << __LINE__ << " : continue --> track- DCA/sigma with respect to BeamSpot is too small: " << DCAKstTrkmBS << "+/-" << DCAKstTrkmBSErr << std::endl;
+                  if (printMsg) std::cout << __LINE__ << " : continue --> track- DCA/sigma with respect to BeamSpot is too small: " << DCAKstTrkmBS << "+/-" << DCAKstTrkmBSErr << std::endl;
                   continue;
                 }
+                if (printMsg) std::cout << __LINE__ << "Track charge - : pt " << tkm.pt() << " eta : " << tkm.eta() << "  phi: " << tkm.phi() << std::endl;
 
-				for (const pat::PackedCandidate &tkp : *tracks) {
-					Trackp = tkp.bestTrack();
-                    if (Trackp->charge() != +1) continue;
 
+
+                itrkp = -1;
+
+                for (const pat::PackedCandidate &tkp : *tracks) {
+                    
+                    itrkp++;
+
+                    if (tkp.charge() != +1 || !tkp.hasTrackDetails() ) continue;
+                    if (tkp.pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
+                    if (fabs(tkp.eta()) > MUMAXETA)                    continue;
+                    if (!tkp.trackHighPurity())                        continue;
+    
+//                     std::cout << tkp.pdgId() << std::endl;
+                    Trackp = &tkp.pseudoTrack();
+                    if (Trackp == nullptr)  continue;
+        
                     const reco::TransientTrack TrackpTT((*Trackp), &(*bFieldHandle));
 
-                    pT = TrackpTT.track().pt();
-                    if (pT < (MINHADPT*(1.0-HADVARTOLE)))
-                    {
-                      if (printMsg) std::cout << __LINE__ << " : break --> too low pT of track+ : " << pT << std::endl;
-                      break;
-                    }
-    
                     // ######################################
                     // # Compute K*0 track+ DCA to BeamSpot #
                     // ######################################
@@ -435,7 +459,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     double DCAKstTrkpBSErr = theDCAXBS.perigeeError().transverseImpactParameterError();
                     if (fabs(DCAKstTrkpBS/DCAKstTrkpBSErr) < HADDCASBS)
                     {
-//                       if (printMsg) std::cout << __LINE__ << " : continue --> track+ DCA/sigma with respect to BeamSpot is too small: " << DCAKstTrkpBS << "+/-" << DCAKstTrkpBSErr << std::endl;
+                      if (printMsg) std::cout << __LINE__ << " : continue --> track+ DCA/sigma with respect to BeamSpot is too small: " << DCAKstTrkpBS << "+/-" << DCAKstTrkpBSErr << std::endl;
                       continue;
                     }
      
@@ -616,25 +640,33 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   
   
                     // #################################################
-                    // # Check if the hadron Track- is actually a muon #
+                    // # Check if the hadron tracks are actually muons #
                     // #################################################
-//                     MuMCat.clear();
-//                     MuMCat = "NotMatched";
-//                     for (const pat::Muon &imutmp : *muons) {
-//                     {
-//                       muTrackTmp = imutmp.innerTrack();
-//                       if ((muTrackTmp.isNull() == true) || (muTrackTmp->charge() != -1)) continue;
-//                       if (Trackm == muTrackTmp)
-//                       {
-//                         MuMCat.clear();
-//                         MuMCat.append(getMuCat(*iMuon));
-//                         if (printMsg) std::cout << __LINE__ << " : negative charged hadron is actually a muon (momentum: " << Trackm->p() << ") whose category is: " << MuMCat.c_str() << std::endl;
-//                         break;
-//                       }
-//                     }
-                    // same for track+
+                    MuMCat.clear();         MuPCat.clear();
+                    MuMCat = "NotMatched";  MuPCat = "NotMatched";
+                    bool foundTkmMum = false; 
+                    bool foundTkpMup = false; 
                     
- 
+                    for (const pat::Muon &imutmp : *muons) 
+                    {
+                    
+                        if (deltaR(tkm,imutmp) > 0.2) continue;
+                        footprint.clear();
+                        for (unsigned int i = 0, n = imutmp.numberOfSourceCandidatePtrs(); i < n; ++i) {
+                            footprint.push_back(imutmp.sourceCandidatePtr(i));
+                        }
+
+                        // pfcandidate-based footprint removal
+                        if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(tracks,itrkm)) != footprint.end()) {
+                            MuMCat.clear();
+                            MuMCat.append(getMuCat(imutmp));
+                        }  
+                        if (std::find(footprint.begin(), footprint.end(), reco::CandidatePtr(tracks,itrkp)) != footprint.end()) {
+                            MuPCat.clear();
+                            MuPCat.append(getMuCat(imutmp));
+                        }  
+                    }
+                    
  
                     chi = 0.;
                     ndf = 0.;
@@ -919,7 +951,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 //                     NTuple->kstTrkmdxyVtx->push_back(theDCAXVtx.second.value());
 //                     NTuple->kstTrkmdzVtx->push_back(TrackmTT.track().dz(bestVtxReFit.position()));
       
-//                     NTuple->kstTrkmMuMatch->push_back(MuMCat);
+                    NTuple->kstTrkmMuMatch->push_back(MuMCat);
       
                     // I do NOT include the number of missing outer hits because the hadron might interact
                     NTuple->kstTrkmNPixHits->push_back(Trackm->hitPattern().numberOfValidPixelHits());
@@ -950,7 +982,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 //                     NTuple->kstTrkpdxyVtx->push_back(theDCAXVtx.second.value());
 //                     NTuple->kstTrkpdzVtx->push_back(TrackpTT.track().dz(bestVtxReFit.position()));
       
-//                     NTuple->kstTrkpMuMatch->push_back(MuPCat);
+                    NTuple->kstTrkpMuMatch->push_back(MuPCat);
       
                     // I do NOT include the number of missing outer hits because the hadron might interact
                     NTuple->kstTrkpNPixHits->push_back(Trackp->hitPattern().numberOfValidPixelHits());
@@ -958,211 +990,189 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     NTuple->kstTrkpNTrkHits->push_back(Trackp->hitPattern().numberOfValidTrackerHits());
                     NTuple->kstTrkpNTrkLayers->push_back(Trackp->hitPattern().trackerLayersWithMeasurement());
       
-/*      
-                    // Save trigger matching for the 4 tracks
-                    tmpString1.clear(); tmpString2.clear(); tmpString3.clear(); tmpString4.clear();
-                    const pat::Muon* patMuonM = &(*iMuonM);
-                    const pat::Muon* patMuonP = &(*iMuonP);
-                    const pat::GenericParticle* patTrkm = &(*iTrackM);
-                    const pat::GenericParticle* patTrkp = &(*iTrackP);
-                    for (unsigned int i = 0; i < TrigTable_.size(); i++)
-                      {
-                        myString.clear(); myString.str(""); myString << TrigTable_[i].c_str() << "*";
-                        if (patMuonM->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString1.append(TrigTable_[i]+" ");
-                        if (patMuonP->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString2.append(TrigTable_[i]+" ");
-                        if (patTrkm ->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString3.append(TrigTable_[i]+" ");
-                        if (patTrkp ->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString4.append(TrigTable_[i]+" ");
-                      }
-                    if (tmpString1.size() == 0) tmpString1.append("NotInTable");
-                    if (tmpString2.size() == 0) tmpString2.append("NotInTable");
-                    if (tmpString3.size() == 0) tmpString3.append("NotInTable");
-                    if (tmpString4.size() == 0) tmpString4.append("NotInTable");
-                    NTuple->mumTrig    ->push_back(tmpString1);
-                    NTuple->mupTrig    ->push_back(tmpString2);
-                    NTuple->kstTrkmTrig->push_back(tmpString3);
-                    NTuple->kstTrkpTrig->push_back(tmpString4);
-      
-                    // save minimum IP from any PV (2D and 3D)
-                    mumMind0  = mupMind0 = 100;
-                    TrkmMind0 = 100;
-                    TrkpMind0 = 100;
-                    mumMinIP  = 100;
-                    mupMinIP  = 100;
-                    TrkmMinIP = 100;
-                    TrkpMinIP = 100;
-                    std::pair<double,double>  IPPair;
-    
-                    for (std::vector<reco::Vertex>::const_iterator ipv = recVtx->begin(); ipv != recVtx->end(); ipv++) { 
-                        vert = GlobalPoint(ipv->x(), ipv->y(), ipv->z());
-    
-                        traj = muTrackmTT.trajectoryStateClosestToPoint(vert );
-                        if (fabs(traj.perigeeParameters().transverseImpactParameter()) < mumMind0){
-                          mumMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
-                          mumMind0E = traj.perigeeError().transverseImpactParameterError();
-                        }  
-    
-                        traj = muTrackpTT.trajectoryStateClosestToPoint(vert );
-                        if (fabs(traj.perigeeParameters().transverseImpactParameter()) < mupMind0){
-                          mupMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
-                          mupMind0E = traj.perigeeError().transverseImpactParameterError();
-                        }  
-    
-                        traj = TrackmTT.trajectoryStateClosestToPoint(vert );
-                        if (fabs(traj.perigeeParameters().transverseImpactParameter()) < TrkmMind0){
-                          TrkmMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
-                          TrkmMind0E = traj.perigeeError().transverseImpactParameterError();
-                        }  
-    
-                        traj = TrackpTT.trajectoryStateClosestToPoint(vert );
-                        if (fabs(traj.perigeeParameters().transverseImpactParameter()) < TrkpMind0){
-                          TrkpMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
-                          TrkpMind0E = traj.perigeeError().transverseImpactParameterError();
-                        }  
-                        
-                        IPPair = pionImpactParameter(muTrackmTT,*ipv);
-                        if (IPPair.first < mumMinIP){
-                          mumMinIP  = IPPair.first;
-                          mumMinIPE = IPPair.second;
-                        }
-                        IPPair = pionImpactParameter(muTrackpTT,*ipv);
-                        if (IPPair.first < mupMinIP){
-                          mupMinIP  = IPPair.first;
-                          mupMinIPE = IPPair.second;
-                        }
-                        IPPair = pionImpactParameter(TrackmTT,*ipv);
-                        if (IPPair.first < TrkmMinIP){
-                          TrkmMinIP  = IPPair.first;
-                          TrkmMinIPE = IPPair.second;
-                        }
-                        IPPair = pionImpactParameter(TrackpTT,*ipv);
-                        if (IPPair.first < TrkpMinIP){
-                          TrkpMinIP  = IPPair.first;
-                          TrkpMinIPE = IPPair.second;
-                        }
-                    }
-    
-                    // isolation
-                    double iso;
-                    chi = 0; ndf = 0;
-                    mum_isovec.clear(); mup_isovec.clear(); trkm_isovec.clear(); trkp_isovec.clear();
-                    float bestVtx_x = bestVtx.x();
-                    float bestVtx_y = bestVtx.y();
-                    float bestVtx_z = bestVtx.z();
-    
-                     for (std::vector<pat::GenericParticle>::const_iterator iTrackIso = thePATTrackHandle->begin(); iTrackIso != thePATTrackHandle->end(); iTrackIso++)
-                     {
-                       if (iTrackIso == iTrackM || iTrackIso == iTrackP) continue;
-                       if (muTrackm == iTrackIso->track() || muTrackp == iTrackIso->track()) continue;
-                      const reco::TransientTrack TrackIsoTT(iTrackIso->track(), &(*bFieldHandle));
-                      
-                      iso = calculateIsolation(ClosestApp, muTrackmTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
-                      if (iso > 0 ) mum_isovec.push_back(iso);
-    
-                      iso = calculateIsolation(ClosestApp, muTrackpTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
-                      if (iso > 0 ) mup_isovec.push_back(iso);
-    
-                      iso = calculateIsolation(ClosestApp, TrackmTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
-                      if (iso > 0 ) trkm_isovec.push_back(iso);
-    
-                      iso = calculateIsolation(ClosestApp, TrackpTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
-                      if (iso > 0 ) trkp_isovec.push_back(iso);
-                     } 
-    
-                    NTuple->mumIso      -> push_back(mum_isovec);
-                    NTuple->mupIso      -> push_back(mup_isovec);
-                    NTuple->kstTrkmIso  -> push_back(trkm_isovec);
-                    NTuple->kstTrkpIso  -> push_back(trkp_isovec);
-    
-    
-                    NTuple->mumMinIP2D      -> push_back(mumMind0);
-                    NTuple->mumMinIP2DE     -> push_back(mumMind0E);
-                    NTuple->mupMinIP2D      -> push_back(mupMind0);
-                    NTuple->mupMinIP2DE     -> push_back(mupMind0E);
-                    NTuple->kstTrkmMinIP2D  -> push_back(TrkmMind0);
-                    NTuple->kstTrkmMinIP2DE -> push_back(TrkmMind0E);
-                    NTuple->kstTrkpMinIP2D  -> push_back(TrkpMind0);
-                    NTuple->kstTrkpMinIP2DE -> push_back(TrkpMind0E);
-    
-                    NTuple->mumMinIP      -> push_back(mumMinIP);
-                    NTuple->mumMinIPE     -> push_back(mumMinIPE);
-                    NTuple->mupMinIP      -> push_back(mupMinIP);
-                    NTuple->mupMinIPE     -> push_back(mupMinIPE);
-                    NTuple->kstTrkmMinIP  -> push_back(TrkmMinIP);
-                    NTuple->kstTrkmMinIPE -> push_back(TrkmMinIPE);
-                    NTuple->kstTrkpMinIP  -> push_back(TrkpMinIP);
-                    NTuple->kstTrkpMinIPE -> push_back(TrkpMinIPE);
-     
-*/      
-                    // #####################
-                    // # Clear all vectors #
-                    // #####################
-//                     vertexTracks.clear();
-                    bParticles.clear();
-                    bBarParticles.clear();
-                    kstParticles.clear();
-                    kstBarParticles.clear();
-
-
+// /*      
+//                     // Save trigger matching for the 4 tracks
+//                     tmpString1.clear(); tmpString2.clear(); tmpString3.clear(); tmpString4.clear();
+//                     const pat::Muon* patMuonM = &(*iMuonM);
+//                     const pat::Muon* patMuonP = &(*iMuonP);
+//                     const pat::GenericParticle* patTrkm = &(*iTrackM);
+//                     const pat::GenericParticle* patTrkp = &(*iTrackP);
+//                     for (unsigned int i = 0; i < TrigTable_.size(); i++)
+//                       {
+//                         myString.clear(); myString.str(""); myString << TrigTable_[i].c_str() << "*";
+//                         if (patMuonM->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString1.append(TrigTable_[i]+" ");
+//                         if (patMuonP->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString2.append(TrigTable_[i]+" ");
+//                         if (patTrkm ->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString3.append(TrigTable_[i]+" ");
+//                         if (patTrkp ->triggerObjectMatchesByPath(myString.str().c_str()).empty() == false) tmpString4.append(TrigTable_[i]+" ");
+//                       }
+//                     if (tmpString1.size() == 0) tmpString1.append("NotInTable");
+//                     if (tmpString2.size() == 0) tmpString2.append("NotInTable");
+//                     if (tmpString3.size() == 0) tmpString3.append("NotInTable");
+//                     if (tmpString4.size() == 0) tmpString4.append("NotInTable");
+//                     NTuple->mumTrig    ->push_back(tmpString1);
+//                     NTuple->mupTrig    ->push_back(tmpString2);
+//                     NTuple->kstTrkmTrig->push_back(tmpString3);
+//                     NTuple->kstTrkpTrig->push_back(tmpString4);
+//       
+//                     // save minimum IP from any PV (2D and 3D)
+//                     mumMind0  = mupMind0 = 100;
+//                     TrkmMind0 = 100;
+//                     TrkpMind0 = 100;
+//                     mumMinIP  = 100;
+//                     mupMinIP  = 100;
+//                     TrkmMinIP = 100;
+//                     TrkpMinIP = 100;
+//                     std::pair<double,double>  IPPair;
+//     
+//                     for (std::vector<reco::Vertex>::const_iterator ipv = recVtx->begin(); ipv != recVtx->end(); ipv++) { 
+//                         vert = GlobalPoint(ipv->x(), ipv->y(), ipv->z());
+//     
+//                         traj = muTrackmTT.trajectoryStateClosestToPoint(vert );
+//                         if (fabs(traj.perigeeParameters().transverseImpactParameter()) < mumMind0){
+//                           mumMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
+//                           mumMind0E = traj.perigeeError().transverseImpactParameterError();
+//                         }  
+//     
+//                         traj = muTrackpTT.trajectoryStateClosestToPoint(vert );
+//                         if (fabs(traj.perigeeParameters().transverseImpactParameter()) < mupMind0){
+//                           mupMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
+//                           mupMind0E = traj.perigeeError().transverseImpactParameterError();
+//                         }  
+//     
+//                         traj = TrackmTT.trajectoryStateClosestToPoint(vert );
+//                         if (fabs(traj.perigeeParameters().transverseImpactParameter()) < TrkmMind0){
+//                           TrkmMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
+//                           TrkmMind0E = traj.perigeeError().transverseImpactParameterError();
+//                         }  
+//     
+//                         traj = TrackpTT.trajectoryStateClosestToPoint(vert );
+//                         if (fabs(traj.perigeeParameters().transverseImpactParameter()) < TrkpMind0){
+//                           TrkpMind0  = fabs(traj.perigeeParameters().transverseImpactParameter());
+//                           TrkpMind0E = traj.perigeeError().transverseImpactParameterError();
+//                         }  
+//                         
+//                         IPPair = pionImpactParameter(muTrackmTT,*ipv);
+//                         if (IPPair.first < mumMinIP){
+//                           mumMinIP  = IPPair.first;
+//                           mumMinIPE = IPPair.second;
+//                         }
+//                         IPPair = pionImpactParameter(muTrackpTT,*ipv);
+//                         if (IPPair.first < mupMinIP){
+//                           mupMinIP  = IPPair.first;
+//                           mupMinIPE = IPPair.second;
+//                         }
+//                         IPPair = pionImpactParameter(TrackmTT,*ipv);
+//                         if (IPPair.first < TrkmMinIP){
+//                           TrkmMinIP  = IPPair.first;
+//                           TrkmMinIPE = IPPair.second;
+//                         }
+//                         IPPair = pionImpactParameter(TrackpTT,*ipv);
+//                         if (IPPair.first < TrkpMinIP){
+//                           TrkpMinIP  = IPPair.first;
+//                           TrkpMinIPE = IPPair.second;
+//                         }
+//                     }
+//     
+//                     // isolation
+//                     double iso;
+//                     chi = 0; ndf = 0;
+//                     mum_isovec.clear(); mup_isovec.clear(); trkm_isovec.clear(); trkp_isovec.clear();
+//                     float bestVtx_x = bestVtx.x();
+//                     float bestVtx_y = bestVtx.y();
+//                     float bestVtx_z = bestVtx.z();
+//     
+//                      for (std::vector<pat::GenericParticle>::const_iterator iTrackIso = thePATTrackHandle->begin(); iTrackIso != thePATTrackHandle->end(); iTrackIso++)
+//                      {
+//                        if (iTrackIso == iTrackM || iTrackIso == iTrackP) continue;
+//                        if (muTrackm == iTrackIso->track() || muTrackp == iTrackIso->track()) continue;
+//                       const reco::TransientTrack TrackIsoTT(iTrackIso->track(), &(*bFieldHandle));
+//                       
+//                       iso = calculateIsolation(ClosestApp, muTrackmTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
+//                       if (iso > 0 ) mum_isovec.push_back(iso);
+//     
+//                       iso = calculateIsolation(ClosestApp, muTrackpTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
+//                       if (iso > 0 ) mup_isovec.push_back(iso);
+//     
+//                       iso = calculateIsolation(ClosestApp, TrackmTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
+//                       if (iso > 0 ) trkm_isovec.push_back(iso);
+//     
+//                       iso = calculateIsolation(ClosestApp, TrackpTT, TrackIsoTT, muonMass, bestVtx_x, bestVtx_y, bestVtx_z);
+//                       if (iso > 0 ) trkp_isovec.push_back(iso);
+//                      } 
+//     
+//                     NTuple->mumIso      -> push_back(mum_isovec);
+//                     NTuple->mupIso      -> push_back(mup_isovec);
+//                     NTuple->kstTrkmIso  -> push_back(trkm_isovec);
+//                     NTuple->kstTrkpIso  -> push_back(trkp_isovec);
+//     
+//     
+//                     NTuple->mumMinIP2D      -> push_back(mumMind0);
+//                     NTuple->mumMinIP2DE     -> push_back(mumMind0E);
+//                     NTuple->mupMinIP2D      -> push_back(mupMind0);
+//                     NTuple->mupMinIP2DE     -> push_back(mupMind0E);
+//                     NTuple->kstTrkmMinIP2D  -> push_back(TrkmMind0);
+//                     NTuple->kstTrkmMinIP2DE -> push_back(TrkmMind0E);
+//                     NTuple->kstTrkpMinIP2D  -> push_back(TrkpMind0);
+//                     NTuple->kstTrkpMinIP2DE -> push_back(TrkpMind0E);
+//     
+//                     NTuple->mumMinIP      -> push_back(mumMinIP);
+//                     NTuple->mumMinIPE     -> push_back(mumMinIPE);
+//                     NTuple->mupMinIP      -> push_back(mupMinIP);
+//                     NTuple->mupMinIPE     -> push_back(mupMinIPE);
+//                     NTuple->kstTrkmMinIP  -> push_back(TrkmMinIP);
+//                     NTuple->kstTrkmMinIPE -> push_back(TrkmMinIPE);
+//                     NTuple->kstTrkpMinIP  -> push_back(TrkpMinIP);
+//                     NTuple->kstTrkpMinIPE -> push_back(TrkpMinIPE);
+//      
+// */      
+//                     // #####################
+//                     // # Clear all vectors #
+//                     // #####################
+// //                     vertexTracks.clear();
+//                     bParticles.clear();
+//                     bBarParticles.clear();
+//                     kstParticles.clear();
+//                     kstBarParticles.clear();
+// 
+// 
                 } // end for trackp
             }    
+
         }
     }
+
+
 
     NTuple->runN   = iEvent.id().run();
     NTuple->eventN = iEvent.id().event();
     NTuple->bsX    = beamSpot.position().x();
     NTuple->bsY    = beamSpot.position().y();  
 
+    for (const reco::Vertex &iVertex : *vertices) 
+    {
+      if(iVertex.ndof()    < PRIVTXNDOF)              continue;
+      if(fabs(iVertex.z()) > PRIVTXMAXZ)              continue;  
+      if(fabs(iVertex.position().rho()) > PRIVTXMAXR) continue;
+      NTuple->recoVtxN++;
+    }
 
-//     edm::Handle jets;
-//     iEvent.getByToken(jetToken_, jets);
-//     int ijet = 0;
-//     for (const pat::Jet &j : *jets) {
-//         if (j.pt() < 20) continue;
-//         printf("jet  with pt %5.1f (raw pt %5.1f), eta %+4.2f, btag CSV %.3f, CISV %.3f, pileup mva disc %+.2f\n",
-//             j.pt(), j.pt()*j.jecFactor("Uncorrected"), j.eta(), std::max(0.f,j.bDiscriminator("combinedSecondaryVertexBJetTags")), std::max(0.f,j.bDiscriminator("combinedInclusiveSecondaryVertexBJetTags")), j.userFloat("pileupJetId:fullDiscriminant"));
-//         if ((++ijet) == 1) { // for the first jet, let's print the leading constituents
-//             std::vector daus(j.daughterPtrVector());
-//             std::sort(daus.begin(), daus.end(), [](const reco::CandidatePtr &p1, const reco::CandidatePtr &p2) { return p1->pt() > p2->pt(); }); // the joys of C++11
-//             for (unsigned int i2 = 0, n = daus.size(); i2 < n && i2 <= 3; ++i2) {
-//                 const pat::PackedCandidate &cand = dynamic_cast<const pat::PackedCandidate &>(*daus[i2]);
-//                 printf("         constituent %3d: pt %6.2f, dz(pv) %+.3f, pdgId %+3d\n", i2,cand.pt(),cand.dz(PV.position()),cand.pdgId());
-//             }
-//         }
-//     }
-// 
-//     edm::Handle fatjets;
-//     iEvent.getByToken(fatjetToken_, fatjets);
-//     for (const pat::Jet &j : *fatjets) {
-//         printf("AK8j with pt %5.1f (raw pt %5.1f), eta %+4.2f, mass %5.1f ungroomed, %5.1f softdrop, %5.1f pruned, %5.1f trimmed, %5.1f filtered. CMS TopTagger %.1f\n",
-//             j.pt(), j.pt()*j.jecFactor("Uncorrected"), j.eta(), j.mass(), j.userFloat("ak8PFJetsCHSSoftDropMass"), j.userFloat("ak8PFJetsCHSPrunedMass"), j.userFloat("ak8PFJetsCHSTrimmedMass"), j.userFloat("ak8PFJetsCHSFilteredMass"), j.userFloat("cmsTopTagPFJetsCHSMassAK8"));
-// 
-//         // To get the constituents of the AK8 jets, you have to loop over all of the
-//         // daughters recursively. To save space, the first two constituents are actually
-//         // the Soft Drop SUBJETS, which will then point to their daughters.
-//         // The remaining constituents are those constituents removed by soft drop but
-//         // still in the AK8 jet.
-//    std::vector constituents;
-//         for ( unsigned ida = 0; ida < j.numberOfDaughters(); ++ida ) {
-//      reco::Candidate const * cand = j.daughter(ida);
-//      if ( cand->numberOfDaughters() == 0 )
-//        constituents.push_back( cand ) ;
-//      else {
-//        for ( unsigned jda = 0; jda < cand->numberOfDaughters(); ++jda ) {
-//          reco::Candidate const * cand2 = cand->daughter(jda);
-//          constituents.push_back( cand2 );
-//        }
-//      }
-//    }
-//    std::sort( constituents.begin(), constituents.end(), [] (reco::Candidate const * ida, reco::Candidate const * jda){return ida->pt() > jda->pt();} );
-// 
-//    for ( unsigned int ida = 0; ida < constituents.size(); ++ida ) {
-//      const pat::PackedCandidate &cand = dynamic_cast<const pat::PackedCandidate &>(*constituents[ida]);
-//      printf("         constituent %3d: pt %6.2f, dz(pv) %+.3f, pdgId %+3d\n", ida,cand.pt(),cand.dz(PV.position()),cand.pdgId());
-//    }
-// 
-//     }
-// 
+    if (!iEvent.isRealData())
+    {
+      // #################################
+      // # Save pileup information in MC #
+      // #################################
+      edm::Handle< std::vector<PileupSummaryInfo> > PupInfo;
+      iEvent.getByToken(puToken_, PupInfo);
+      for (std::vector<PileupSummaryInfo>::const_iterator PVI = PupInfo->begin(); PVI != PupInfo->end(); PVI++)
+      {
+        NTuple->bunchXingMC->push_back(PVI->getBunchCrossing());
+        NTuple->numInteractionsMC->push_back(PVI->getPU_NumInteractions());
+        NTuple->trueNumInteractionsMC->push_back(PVI->getTrueNumInteractions());
+      }
+
+      MonteCarloStudies(iEvent) ;
+    }
+
 
     theTree->Fill();
     NTuple->ClearNTuple();
@@ -1170,7 +1180,254 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 
-std::string miniKstarMuMu::getMuCat (reco::Muon const& muon)
+
+
+
+void miniKstarMuMu::MonteCarloStudies(const edm::Event& iEvent)
+{
+    if( iEvent.isRealData() ) {return ;}
+
+    edm::Handle<reco::GenParticleCollection> pruned;
+    iEvent.getByToken(prunedGenToken_,pruned);
+
+    edm::Handle<pat::PackedGenParticleCollection> packed;
+    iEvent.getByToken(packedGenToken_,packed);
+
+    double deltaEtaPhi;
+    
+    const reco::Candidate* genPsi = NULL;
+    const reco::Candidate* genMum = NULL;
+    const reco::Candidate* genMup = NULL;
+    const reco::Candidate* genKst = NULL;
+    const reco::Candidate* genTrkm = NULL;
+    const reco::Candidate* genTrkp = NULL;
+//  const reco::Candidate* genB0save = NULL;
+    
+    bool found_mum  = false;
+    bool found_mup  = false;
+    bool found_trkp = false;
+    bool found_trkm = false;
+
+    for (const reco::GenParticle &bMeson : *pruned) {
+        if(abs( bMeson.pdgId()) == 511){
+        
+            if (skipOscillations(bMeson, pruned)) continue;
+            if (printMsg) std::cout << "PdgID: " << bMeson.pdgId() << " pt " << bMeson.pt() << " eta: " << bMeson.eta() << " phi: " << bMeson.phi()  << "mother: " << bMeson.mother(0)->pdgId() << std::endl;
+
+            genMum      = NULL;
+            genMup      = NULL;
+            genTrkm = NULL;
+            genTrkp = NULL;
+            
+            found_mum  = false;
+            found_mup  = false;
+            found_trkp = false;
+            found_trkm = false;
+               
+            for (const pat::PackedGenParticle &dau : *packed) {
+                //get the pointer to the first survied ancestor of a given packed GenParticle in the prunedCollection
+                const reco::Candidate * motherInPrunedCollection = dau.mother(0) ;
+                if(motherInPrunedCollection != nullptr && isAncestor( &bMeson , motherInPrunedCollection))
+                {
+                    if (printMsg)   std::cout << "     PdgID: " << dau.pdgId() << " pt " << dau.pt() << " eta: " << dau.eta() << " phi: " << dau.phi() << std::endl;
+                    
+                    if (dau.pdgId() == 13) {
+                        found_mum = true;
+                        genMum = &dau;
+                    }
+                    else if (dau.pdgId() == -13) {
+                        found_mup = true;
+                        genMup = &dau;
+                    }
+                    else if (dau.pdgId() == 211 || dau.pdgId() == 321 ) {
+                        found_trkp = true;
+                        genTrkp = &dau;
+                    }
+                    else if (dau.pdgId() == -211 || dau.pdgId() == -321 ) {
+                        found_trkm = true;
+                        genTrkm = &dau;
+                    }
+                    
+                }
+            }
+            
+            
+            if (found_mup && found_mum && found_trkp && found_trkm ){
+                NTuple->genMumPx = genMum->px();
+                NTuple->genMumPy = genMum->py();
+                NTuple->genMumPz = genMum->pz();
+
+                NTuple->genMupPx = genMup->px();
+                NTuple->genMupPy = genMup->py();
+                NTuple->genMupPz = genMup->pz();
+
+                NTuple->genKstTrkmID = genTrkm->pdgId();
+                NTuple->genKstTrkmPx = genTrkm->px();
+                NTuple->genKstTrkmPy = genTrkm->py();
+                NTuple->genKstTrkmPz = genTrkm->pz();
+
+                NTuple->genKstTrkpID = genTrkp->pdgId();
+                NTuple->genKstTrkpPx = genTrkp->px();
+                NTuple->genKstTrkpPy = genTrkp->py();
+                NTuple->genKstTrkpPz = genTrkp->pz();
+                
+                NTuple->genKstPx = genTrkm->px() + genTrkp->px();
+                NTuple->genKstPy = genTrkm->py() + genTrkp->py();
+                NTuple->genKstPz = genTrkm->pz() + genTrkp->pz();
+                NTuple->genKstMass = Utility->computeInvMass (genTrkm->px(),genTrkm->py(),genTrkm->pz(),genTrkm->mass(),
+                                                              genTrkp->px(),genTrkp->py(),genTrkp->pz(),genTrkp->mass());
+                  
+
+                if      (genTrkp->pdgId() == 321) NTuple->genSignal = 1;
+                else if (genTrkp->pdgId() == 211) NTuple->genSignal = 2;
+                
+                NTuple->genB0Mass = bMeson.mass();
+                NTuple->genB0Px   = bMeson.px();
+                NTuple->genB0Py   = bMeson.py();
+                NTuple->genB0Pz   = bMeson.pz();
+                NTuple->genB0VtxX = bMeson.vx();
+                NTuple->genB0VtxY = bMeson.vy();
+                NTuple->genB0VtxZ = bMeson.vz();
+                
+//                 genB0save = &bMeson;
+            }
+            
+        }
+
+//         if( fabs(bMeson.pdgId()) == 313){
+//             if (fabs(bMeson.mother(0)->pdgId()) == 511 && bMeson.mother(0)->px() == genB0save->px()){
+//                 std::cout << "found K****" << std::endl;
+//                 std::cout << bMeson.px() - << std::endl;
+//             }
+//         }
+
+    }
+    
+    
+    
+    // ####################################
+    // # Perform matching with candidates #
+    // ####################################
+    for (unsigned int i = 0; i < NTuple->nB; i++)
+    {
+        deltaEtaPhi = Utility->computeEtaPhiDistance (NTuple->genMumPx,NTuple->genMumPy,NTuple->genMumPz, NTuple->mumPx->at(i),NTuple->mumPy->at(i),NTuple->mumPz->at(i));
+        NTuple->mumDeltaRwithMC->push_back(deltaEtaPhi);
+        if (deltaEtaPhi < RCUTMU)
+        {
+            NTuple->truthMatchMum->push_back(1);
+            if (printMsg) std::cout << __LINE__ << " : found matched mu-" << std::endl;
+        }
+        else NTuple->truthMatchMum->push_back(0);
+              
+
+        deltaEtaPhi = Utility->computeEtaPhiDistance (NTuple->genMupPx,NTuple->genMupPy,NTuple->genMupPz, NTuple->mupPx->at(i),NTuple->mupPy->at(i),NTuple->mupPz->at(i));
+        NTuple->mupDeltaRwithMC->push_back(deltaEtaPhi);
+        if (deltaEtaPhi < RCUTMU)
+        {
+            NTuple->truthMatchMup->push_back(1);
+            if (printMsg) std::cout << __LINE__ << " : found matched mu+" << std::endl;
+        }
+        else NTuple->truthMatchMup->push_back(0);
+              
+
+        deltaEtaPhi = Utility->computeEtaPhiDistance (NTuple->genKstTrkmPx,NTuple->genKstTrkmPy,NTuple->genKstTrkmPz, NTuple->kstTrkmPx->at(i),NTuple->kstTrkmPy->at(i),NTuple->kstTrkmPz->at(i));
+        NTuple->kstTrkmDeltaRwithMC->push_back(deltaEtaPhi);
+        if (deltaEtaPhi < RCUTTRK)
+        {
+            NTuple->truthMatchTrkm->push_back(1);
+            if (printMsg) std::cout << __LINE__ << " : found matched track-" << std::endl;
+        }
+        else NTuple->truthMatchTrkm->push_back(0);
+
+        deltaEtaPhi = Utility->computeEtaPhiDistance (NTuple->genKstTrkpPx,NTuple->genKstTrkpPy,NTuple->genKstTrkpPz, NTuple->kstTrkpPx->at(i),NTuple->kstTrkpPy->at(i),NTuple->kstTrkpPz->at(i));
+        NTuple->kstTrkpDeltaRwithMC->push_back(deltaEtaPhi);
+        if (deltaEtaPhi < RCUTTRK) 
+        {
+           NTuple->truthMatchTrkp->push_back(1);
+           if (printMsg) std::cout << __LINE__ << " : found matched track+" << std::endl;
+        }
+        else NTuple->truthMatchTrkp->push_back(0);
+
+
+        // ####################################################
+        // # Check matching with B0 --> track+ track- mu+ mu- #
+        // ####################################################
+        if ((NTuple->truthMatchTrkm->back() == 1) && (NTuple->truthMatchTrkp->back() == 1) &&
+            (NTuple->truthMatchMum->back() == 1) && (NTuple->truthMatchMup->back() == 1))
+        {
+            NTuple->truthMatchSignal->push_back(1);
+            if (printMsg) std::cout << __LINE__ << " : @@@ Found matched B0 --> track+ track- mu+ mu- @@@" << std::endl;
+        }
+        else NTuple->truthMatchSignal->push_back(0);
+      }
+//   else
+//     for (unsigned int i = 0; i < NTuple->nB; i++)
+//       {
+//     NTuple->mumDeltaRwithMC->push_back(-1.0);
+//     NTuple->mupDeltaRwithMC->push_back(-1.0);
+//     NTuple->kstTrkmDeltaRwithMC->push_back(-1.0);
+//     NTuple->kstTrkpDeltaRwithMC->push_back(-1.0);
+//     
+//     NTuple->truthMatchMum->push_back(0);
+//     NTuple->truthMatchMup->push_back(0);
+//     NTuple->truthMatchTrkm->push_back(0);
+//     NTuple->truthMatchTrkp->push_back(0);
+//     NTuple->truthMatchSignal->push_back(0);
+
+
+    
+    
+
+}
+
+
+bool miniKstarMuMu::skipOscillations (const reco::GenParticle &bMeson, edm::Handle<reco::GenParticleCollection> pruned)
+{
+    for (unsigned int i = 0; i < bMeson.numberOfDaughters(); i++){
+        if (bMeson.daughter(i)->pdgId() == 511 || bMeson.daughter(i)->pdgId() == 531 || bMeson.daughter(i)->pdgId() == 5122)    return true; 
+        // std::cout << "oscillating to:     PdgID: " << bMeson.daughter(i)->pdgId() << " pt " << bMeson.daughter(i)->pt() << " eta: " << bMeson.daughter(i)->eta() << " phi: " << bMeson.daughter(i)->phi() << std::endl;
+    }
+    
+    for (const reco::GenParticle &bMother : *pruned) {
+        if ( fabs(bMother.pdgId()) == 511){
+            const reco::Candidate * mother = bMother.mother(0) ;
+            if(mother != nullptr && isAncestor( &bMeson , mother)) return true;
+        }
+    }
+    
+    
+    
+    
+//     if ( fabs(bMeson.mother(0)->pdgId()) == 511) return true;
+//   if (abs(Mother->pdgId()) != 521)
+//     for (unsigned int i = 0; i < Mother->numberOfDaughters(); i++)
+//       if ((abs(Mother->daughter(i)->pdgId()) == 511) || (abs(Mother->daughter(i)->pdgId()) == 531) || (abs(Mother->daughter(i)->pdgId()) == 5122))
+//       {
+//         if (printMsg) std::cout << __LINE__ << " : @@@ Found oscillating B0/B0bar OR Bs/Bsbar OR Lambda_b/Lambda_bbar @@@" << std::endl;
+//         Mother = Mother->daughter(i);
+//       }
+
+  return false;
+}
+
+bool miniKstarMuMu::isAncestor(const reco::Candidate* ancestor, const reco::Candidate * particle)
+{
+    //particle is already the ancestor
+    if(ancestor == particle ) return true;
+
+    //otherwise loop on mothers, if any and return true if the ancestor is found
+    for(size_t i=0;i< particle->numberOfMothers();i++)
+    {
+        if(isAncestor(ancestor,particle->mother(i))) return true;
+    }
+    //if we did not return yet, then particle and ancestor are not relatives
+    return false;
+}
+
+
+
+
+std::string miniKstarMuMu::getMuCat (pat::Muon const& muon)
 {
   std::stringstream muCat;
   muCat.str("");
@@ -1183,7 +1440,7 @@ std::string miniKstarMuMu::getMuCat (reco::Muon const& muon)
   if (muon.isTrackerMuon() == true)
   {
     muCat << " TrackerMuon";
-    if (muon::isGoodMuon(muon, muon::TrackerMuonArbitrated) == true) muCat << " TrackerMuonArbitrated";
+    if (muon::isGoodMuon(muon, muon::TrackerMuonArbitrated)  == true) muCat << " TrackerMuonArbitrated";
     if (muon::isGoodMuon(muon, muon::TMLastStationTight)     == true) muCat << " TMLastStationTight";
     if (muon::isGoodMuon(muon, muon::TMLastStationLoose)     == true) muCat << " TMLastStationLoose";
     if (muon::isGoodMuon(muon, muon::TM2DCompatibilityTight) == true) muCat << " TM2DCompatibilityTight";
