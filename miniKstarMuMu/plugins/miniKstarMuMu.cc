@@ -157,6 +157,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     edm::Handle<pat::PackedCandidateCollection> tracks;
     iEvent.getByToken(trackToken_, tracks);
 
+    std::sort( muons.begin(), muons.end(), [] (pat::Muon const * ida, reco::Candidate const * jda){return ida->pt() > jda->pt();} );
     for (const pat::Muon &mum : *muons) {
         muTrackm = mum.innerTrack();
         if ((muTrackm.isNull() == true) || (muTrackm->charge() != -1)) continue;
