@@ -1,0 +1,12 @@
+<lcgdict>
+ <class name="miniHLTObj"/>
+ <class name="std::vector<miniHLTObj>"/>
+ <class name="edm::Wrapper<std::vector<miniHLTObj> >"/>
+</lcgdict>
+
+<!-- 
+<rootdict>
+  <class name="std::vector<miniHLTObj>>" />
+  <class name="edm::Wrapper<std::vector<miniHLTObj> >"/>
+</rootdict>
+ -->

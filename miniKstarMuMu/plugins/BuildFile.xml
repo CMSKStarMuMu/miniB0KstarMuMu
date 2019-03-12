@@ -1,10 +1,11 @@
-<library name="miniB0KstarMuMuminiKstarMuMuPlugin" file="miniKstarMuMu.cc">
+<library name="miniB0KstarMuMuminiKstarMuMuPlugin" file="*.cc">
  <use name="miniB0KstarMuMu/miniKstarMuMu"/>
  <use name="DataFormats/Common"/>
  <use name="DataFormats/PatCandidates"/>
  <use name="DataFormats/VertexReco"/>
  <use name="FWCore/Framework"/>
  <use name="FWCore/ParameterSet"/>
+ <use name="HLTrigger/HLTcore"/>
  <use name="MagneticField/Engine"/>
  <use name="RecoVertex/AdaptiveVertexFit"/>
  <use name="RecoVertex/KinematicFit"/>
@@ -14,6 +15,7 @@
  <use name="TrackingTools/PatternTools"/>
  <use name="TrackingTools/Records"/>
  <use name="TrackingTools/TransientTrack"/>
- <use name="roofitcore"/>
+ <use name="root"/>
  <flags EDM_PLUGIN="1"/>
 </library>
+<!-- plugins -->

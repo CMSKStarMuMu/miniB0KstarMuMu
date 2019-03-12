@@ -5,20 +5,21 @@
 #include <string>
 #include "TTree.h"
 
+#include "miniB0KstarMuMu/miniKstarMuMu/interface/miniHLTObj.h"
+
+
 
 class B0KstMuMuTreeContent
 {
  public:
   
-  B0KstMuMuTreeContent ();
+   B0KstMuMuTreeContent ();
   ~B0KstMuMuTreeContent ();
 
   void Init ();
   void ClearNTuple ();
   void ClearMonteCarlo ();
   void MakeTreeBranches (TTree* theTree);
-  void SetBranchAddresses (TTree* theTree);
-  void FillWithNull (unsigned int upTo);
 
 
   // ########################################################
@@ -38,7 +39,8 @@ class B0KstMuMuTreeContent
   // ###########
   std::vector<std::string>  *TrigTable;
   std::vector<int>          *TrigPrescales;
-  
+  std::vector<std::string>  *L1Table;
+  std::vector<int>          *L1Prescales;
   // ###########################
   // # Number of B0 candidates #
   // ###########################
@@ -61,7 +63,6 @@ class B0KstMuMuTreeContent
   // ################################
   // # Primary Vertex and Beam Spot #
   // ################################
-  double                    priVtxCL, priVtxX, priVtxY, priVtxZ;
   double                    bsX, bsY;
 
   // ###########
@@ -73,14 +74,8 @@ class B0KstMuMuTreeContent
   // # B0 Vtx #
   // ##########
   std::vector<double>       *bVtxCL, *bVtxX, *bVtxY, *bVtxZ;
-  std::vector<double>       *bCosAlphaVtx, *bCosAlphaVtxE, *bCosAlphaBS, *bCosAlphaBSE;
-  std::vector<double>       *bLVtx, *bLVtxE, *bLBS, *bLBSE;
-  std::vector<double>       *bDCAVtx, *bDCAVtxE, *bDCABS, *bDCABSE;
-
-  // ###########
-  // # B0 ctau #
-  // ###########
-  std::vector<double>       *bctauPVBS, *bctauPVBSE;
+  std::vector<double>       *bCosAlphaBS, *bCosAlphaBSE;
+  std::vector<double>       *bLBS, *bLBSE, *bDCABS, *bDCABSE;
 
   // ############
   // # K*0 Mass #
@@ -112,13 +107,13 @@ class B0KstMuMuTreeContent
 //   std::vector<int>         *mumHighPurity;
   std::vector<bool>         *mumHighPurity;
   std::vector<double>       *mumCL, *mumNormChi2, *mumPx, *mumPy, *mumPz;
+  std::vector<double>       *rawmumPt, *rawmumPhi, *rawmumEta;
   std::vector<double>       *mumDCAVtx, *mumDCAVtxE, *mumDCABS, *mumDCABSE, *mumKinkChi2, *mumFracHits;
-  std::vector<double>       *mumdxyVtx, *mumdzVtx, *mumMinIP2D, *mumMinIP2DE, *mumMinIP, *mumMinIPE;
+  std::vector<double>       *mumdxyBS, *mumdzBS, *mumMinIP2D, *mumMinIP2DE, *mumMinIP, *mumMinIPS;
   std::vector<double>       *mumDeltaRwithMC;
   std::vector<std::string>  *mumCat;
   std::vector<int>          *mumNPixHits, *mumNPixLayers, *mumNTrkHits, *mumNTrkLayers, *mumNMuonHits, *mumNMatchStation;
-  std::vector<std::string>  *mumTrig;
-  std::vector<std::vector<float>> *mumIso;
+  std::vector<std::vector<float>> *mumIso, *mumIsoPt, *mumIsodR;
 
   // #######
   // # mu+ #
@@ -126,13 +121,13 @@ class B0KstMuMuTreeContent
 //   std::vector<int>         *mupHighPurity;
   std::vector<bool>         *mupHighPurity;
   std::vector<double>       *mupCL, *mupNormChi2, *mupPx, *mupPy, *mupPz;
+  std::vector<double>       *rawmupPt, *rawmupPhi, *rawmupEta;
   std::vector<double>       *mupDCAVtx, *mupDCAVtxE, *mupDCABS, *mupDCABSE, *mupKinkChi2, *mupFracHits;
-  std::vector<double>       *mupdxyVtx, *mupdzVtx, *mupMinIP2D, *mupMinIP2DE, *mupMinIP, *mupMinIPE;
+  std::vector<double>       *mupdxyBS, *mupdzBS, *mupMinIP2D, *mupMinIP2DE, *mupMinIP, *mupMinIPS;
   std::vector<double>       *mupDeltaRwithMC;
   std::vector<std::string>  *mupCat;
   std::vector<int>          *mupNPixHits, *mupNPixLayers, *mupNTrkHits, *mupNTrkLayers, *mupNMuonHits, *mupNMatchStation;
-  std::vector<std::string>  *mupTrig;
-  std::vector<std::vector<float>> *mupIso;
+  std::vector<std::vector<float>> *mupIso, *mupIsoPt, *mupIsodR;
 
   // ##############
   // # K*0 track- #
@@ -140,14 +135,14 @@ class B0KstMuMuTreeContent
 //   std::vector<int>         *kstTrkmHighPurity;
   std::vector<bool>         *kstTrkmHighPurity;
   std::vector<double>       *kstTrkmCL, *kstTrkmNormChi2, *kstTrkmPx, *kstTrkmPy, *kstTrkmPz;
+  std::vector<double>       *rawkstTrkmPt, *rawkstTrkmPhi, *rawkstTrkmEta;
   std::vector<double>       *kstTrkmPxxE, *kstTrkmPyyE, *kstTrkmPzzE, *kstTrkmPxyE, *kstTrkmPxzE, *kstTrkmPyzE;
   std::vector<double>       *kstTrkmDCAVtx, *kstTrkmDCAVtxE, *kstTrkmDCABS, *kstTrkmDCABSE, *kstTrkmFracHits;
-  std::vector<double>       *kstTrkmdxyVtx, *kstTrkmdzVtx, *kstTrkmMinIP2D, *kstTrkmMinIP2DE, *kstTrkmMinIP, *kstTrkmMinIPE;
+  std::vector<double>       *kstTrkmdxyVtx, *kstTrkmdzVtx, *kstTrkmMinIP2D, *kstTrkmMinIP2DE, *kstTrkmMinIP, *kstTrkmMinIPS;
   std::vector<double>       *kstTrkmDeltaRwithMC;
   std::vector<int>          *kstTrkmNPixHits, *kstTrkmNPixLayers, *kstTrkmNTrkHits, *kstTrkmNTrkLayers;
   std::vector<std::string>  *kstTrkmMuMatch;
-  std::vector<std::string>  *kstTrkmTrig;
-  std::vector<std::vector<float>> *kstTrkmIso;
+  std::vector<std::vector<float>> *kstTrkmIso, *kstTrkmIsoPt, *kstTrkmIsodR;
 
   // ##############
   // # K*0 track+ #
@@ -155,14 +150,23 @@ class B0KstMuMuTreeContent
 //   std::vector<int>         *kstTrkpHighPurity;
   std::vector<bool>         *kstTrkpHighPurity;
   std::vector<double>       *kstTrkpCL, *kstTrkpNormChi2, *kstTrkpPx, *kstTrkpPy, *kstTrkpPz;
+  std::vector<double>       *rawkstTrkpPt, *rawkstTrkpPhi, *rawkstTrkpEta;
   std::vector<double>       *kstTrkpPxxE, *kstTrkpPyyE, *kstTrkpPzzE, *kstTrkpPxyE, *kstTrkpPxzE, *kstTrkpPyzE;
   std::vector<double>       *kstTrkpDCAVtx, *kstTrkpDCAVtxE, *kstTrkpDCABS, *kstTrkpDCABSE, *kstTrkpFracHits;
-  std::vector<double>       *kstTrkpdxyVtx, *kstTrkpdzVtx, *kstTrkpMinIP2D, *kstTrkpMinIP2DE, *kstTrkpMinIP, *kstTrkpMinIPE;
+  std::vector<double>       *kstTrkpdxyVtx, *kstTrkpdzVtx, *kstTrkpMinIP2D, *kstTrkpMinIP2DE, *kstTrkpMinIP, *kstTrkpMinIPS;
   std::vector<double>       *kstTrkpDeltaRwithMC;
   std::vector<int>          *kstTrkpNPixHits, *kstTrkpNPixLayers, *kstTrkpNTrkHits, *kstTrkpNTrkLayers;
   std::vector<std::string>  *kstTrkpMuMatch;
-  std::vector<std::string>  *kstTrkpTrig;
-  std::vector<std::vector<float>> *kstTrkpIso;
+  std::vector<std::vector<float>> *kstTrkpIso, *kstTrkpIsoPt, *kstTrkpIsodR;
+
+  std::vector<miniHLTObj>   *hltObjs;
+//   miniHLTObjCollection *hltObjs;
+
+  // ##########
+  // # B0 -1 trk Vtx #
+  // ##########
+  std::vector<double>       *bMinusVtxCL, *bMinusCosAlphaBS;
+  std::vector<double>       *bPlusVtxCL , *bPlusCosAlphaBS;
 
   // #########################
   // # Generated Observables #

@@ -20,6 +20,7 @@
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 #include "DataFormats/Common/interface/Handle.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
@@ -28,8 +29,14 @@
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "HLTrigger/HLTcore/interface/HLTPrescaleProvider.h"
+
+#include "L1Trigger/L1TGlobal/interface/L1TGlobalUtil.h"
 
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
@@ -38,6 +45,7 @@
 
 #include "Utils.h"
 #include "B0KstMuMuTreeContent.h"
+#include "miniB0KstarMuMu/miniKstarMuMu/interface/miniHLTObj.h"
 
 
 //
@@ -53,6 +61,7 @@ class miniKstarMuMu : public edm::EDAnalyzer {
 
    private:
       virtual void beginJob ();
+      virtual void beginRun(const edm::Run &, const edm::EventSetup &);
       virtual void analyze(const edm::Event&, const edm::EventSetup&) override;
       virtual void endJob ();
       void         MonteCarloStudies(  const edm::Event& );
@@ -65,11 +74,20 @@ class miniKstarMuMu : public edm::EDAnalyzer {
       edm::EDGetTokenT<reco::TrackCollection>          trackToken_;
       edm::EDGetTokenT<reco::BeamSpot>                 beamSpotToken_;
 
+      edm::EDGetTokenT<edm::TriggerResults>                    triggerBits_;
+      edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
+      edm::EDGetTokenT<pat::PackedTriggerPrescales>            triggerPrescales_;
+      std::vector<std::string> trigTable_;
+      std::vector<std::string> l1Table_;
+
       edm::EDGetTokenT<reco::GenParticleCollection>         prunedGenToken_;
       edm::EDGetTokenT<pat::PackedGenParticleCollection>    packedGenToken_;
 
       edm::EDGetTokenT<std::vector< PileupSummaryInfo>> puToken_;
 
+      HLTPrescaleProvider hltPrescaleProvider_;
+      edm::EDGetTokenT<GlobalAlgBlkBxCollection> l1results_;
+      edm::EDGetTokenT<GlobalExtBlkBxCollection> l1ext_;
 	  // ####################
 	  // # HLT-trigger cuts #
 	  // ####################
@@ -100,6 +118,7 @@ class miniKstarMuMu : public edm::EDAnalyzer {
       TTree* theTree;
       B0KstMuMuTreeContent* NTuple;
       Utils* Utility;
+      l1t::L1TGlobalUtil *fGtUtil;
 
 };
 
