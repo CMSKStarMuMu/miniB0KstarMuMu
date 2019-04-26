@@ -175,8 +175,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     std::pair <bool,Measurement1D> theDCAXVtx;
     std::vector<reco::CandidatePtr> footprint;
 
-    std::string MuMCat;
-    std::string MuPCat;
+    std::string MuMCat, MuPCat;
     std::string tmpString1, tmpString2, tmpString3, tmpString4;
     std::stringstream myString;
 
@@ -674,7 +673,6 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     bool foundTkmMum = false; 
                     bool foundTkpMup = false; 
                     
-                    reco::TrackRef muTrackTmp;
                     for (const pat::Muon &imutmp : *muons) {
                         for (unsigned int i = 0; i < imutmp.numberOfSourceCandidatePtrs(); ++i) {
                             
@@ -1195,7 +1193,8 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                                                     bFieldHandle,
                                                     ClosestApp,
                                                     beamSpot , 
-                                                    muTrackm    , muTrackp  ,
+                                                    mum, mup,
+//                                                     muTrackm    , muTrackp  ,
                                                     itrkm       , itrkp     ,
                                                     refitMumTT  , refitMupTT,
                                                     refitTrkmTT , refitTrkpTT                                                    

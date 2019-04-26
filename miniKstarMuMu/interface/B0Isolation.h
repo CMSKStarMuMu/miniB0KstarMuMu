@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 
@@ -34,8 +35,10 @@ class B0Isolation
                 edm::ESHandle<MagneticField> , 
                 ClosestApproachInRPhi,
                 reco::BeamSpot ,
-                reco::TrackRef , // muon -
-                reco::TrackRef , // muon +
+                const pat::Muon&, 
+                const pat::Muon&, 
+//                 reco::TrackRef , // muon -
+//                 reco::TrackRef , // muon +
                 uint , // trk minus index
                 uint ,  // trk plus index
                 const reco::TransientTrack, 

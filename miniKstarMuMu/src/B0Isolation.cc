@@ -10,8 +10,10 @@ B0Isolation::B0Isolation(reco::Vertex bestVtx,
                          edm::ESHandle<MagneticField> bFieldHandle,
                          ClosestApproachInRPhi ClosestApp,
                          reco::BeamSpot beamSpot,
-                         reco::TrackRef muTrackm, // muon -
-                         reco::TrackRef muTrackp, // muon +
+                         const pat::Muon& mum,
+                         const pat::Muon& mup,
+//                          reco::TrackRef muTrackm, // muon -
+//                          reco::TrackRef muTrackp, // muon +
                          uint itrkm, // trk minus index
                          uint itrkp,  // trk plus index
                          const reco::TransientTrack refitMumTT, 
@@ -35,9 +37,39 @@ B0Isolation::B0Isolation(reco::Vertex bestVtx,
 
       reco::TrackRef tkiso(tracks,itrkiso) ;                                                
       if ( itrkiso == itrkm  || itrkiso == itrkp)           continue;
-      if ( muTrackm == tkiso || muTrackp == tkiso)          continue;
 //       if (!tkiso->quality(reco::TrackBase::highPurity))     continue;
       if ( tkiso->pt() < 0.8 )                              continue;
+
+
+      // check if the track is one of the two muons
+      bool skip_this_track = false;              
+      for (unsigned int i = 0; i < mum.numberOfSourceCandidatePtrs(); ++i) {
+          const edm::Ptr<reco::Candidate> & source = mum.sourceCandidatePtr(i);
+          if (! ( (mum.sourceCandidatePtr(i)).isNonnull() &&  (mum.sourceCandidatePtr(i)).isAvailable() ))   continue;
+          const reco::Candidate & cand = *(source);
+          if (cand.charge() == 0 || cand.bestTrack() == nullptr)      continue;
+          try{ cand.bestTrack()->eta();}
+          catch(...) { continue;}
+          if ( deltaR(tkiso->eta(),tkiso->phi(),cand.bestTrack()->eta(),cand.bestTrack()->phi()) < 0.00001 ) {
+              skip_this_track = true;
+              break;
+          }
+      }
+      if (skip_this_track) continue;
+      for (unsigned int i = 0; i < mup.numberOfSourceCandidatePtrs(); ++i) {
+          const edm::Ptr<reco::Candidate> & source = mup.sourceCandidatePtr(i);
+          if (! ( (mup.sourceCandidatePtr(i)).isNonnull() &&  (mup.sourceCandidatePtr(i)).isAvailable() ))   continue;
+          const reco::Candidate & cand = *(source);
+          if (cand.charge() == 0 || cand.bestTrack() == nullptr)      continue;
+          try{ cand.bestTrack()->eta();}
+          catch(...) { continue;}
+          if ( deltaR(tkiso->eta(),tkiso->phi(),cand.bestTrack()->eta(),cand.bestTrack()->phi()) < 0.00001 ) {
+              skip_this_track = true;
+              break;
+          }
+      }
+      if (skip_this_track) continue;
+
 
       // requirement that the track is not associated to any PV
       // if (findPV(trk_index, recVtxColl) == 1 ) continue;

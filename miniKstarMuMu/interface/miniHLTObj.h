@@ -26,19 +26,4 @@ public:
 
 // typedef std::vector<miniHLTObj> miniHLTObjCollection;
 
-// 
-// class MuonEvent {
-// public:
-// 
-//   Int_t   runNumber;             
-//   std::vector <HLTMuonCand>     hltmuons;      
-//   std::vector <HLTMuonCand>     L2muons;      
-// 
-//   MuonEvent(){};
-//   virtual ~MuonEvent(){};
-// 
-//   ClassDef(MuonEvent,1)
-// };
-// 
-
 #endif
