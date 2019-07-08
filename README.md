@@ -2,8 +2,8 @@
 
 **ntuple production**  
 ```
-cmsrel CMSSW_9_3_5 
-cd CMSSW_9_3_5_patch1/src
+cmsrel CMSSW_9_4_0_patch1 
+cd CMSSW_9_4_0_patch1/src
 
 cmsenv  
 git cms-addpkg PhysicsTools/PatAlgos
@@ -12,7 +12,7 @@ git fetch packed-cmssw
 git checkout packed-cmssw/addPATSelector93X PhysicsTools/PatAlgos/plugins/PATObjectSelector.cc
 git checkout packed-cmssw/addPATSelector93X PhysicsTools/PatAlgos/plugins/PATObjectSelector.h
 
-git clone git@github.com:PhaseIIB0KstarMuMu/miniB0KstarMuMu.git  
+git clone git@github.com:sarafiorendi/miniB0KstarMuMu.git  
 scram b
 
 cd miniB0KstarMuMu/miniKstarMuMu/test
