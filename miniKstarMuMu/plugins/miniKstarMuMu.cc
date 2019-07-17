@@ -423,12 +423,12 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             double MuMuLSBS;
             double MuMuLSBSErr;
             Utility->computeLS (mumu_KV->position().x(),mumu_KV->position().y(),0.0,
-                        beamSpot.position().x(),beamSpot.position().y(),0.0,
-                        mumu_KV->error().cxx(),mumu_KV->error().cyy(),0.0,
-                        mumu_KV->error().matrix()(0,1),0.0,0.0,
-                        beamSpot.covariance()(0,0),beamSpot.covariance()(1,1),0.0,
-                        beamSpot.covariance()(0,1),0.0,0.0,
-                        &MuMuLSBS,&MuMuLSBSErr);
+                                beamSpot.position().x(),beamSpot.position().y(),0.0,
+                                mumu_KV->error().cxx(),mumu_KV->error().cyy(),0.0,
+                                mumu_KV->error().matrix()(0,1),0.0,0.0,
+                                beamSpot.covariance()(0,0),beamSpot.covariance()(1,1),0.0,
+                                beamSpot.covariance()(0,1),0.0,0.0,
+                                &MuMuLSBS,&MuMuLSBSErr);
             if (MuMuLSBS/MuMuLSBSErr < LSMUMUBS)     
             {
               if (printMsg) std::cout << __LINE__ << " : continue --> bad mumu L/sigma with respect to BeamSpot: " << MuMuLSBS << "+/-" << MuMuLSBSErr << std::endl;
@@ -466,7 +466,9 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 reco::TrackRef tkm(tracks,itrkm) ;  
    			    if ( tkm.isNull() == true) continue;
 //                 if (! tkm->quality(reco::TrackBase::highPurity))     continue;
+
                 if ( tkm->charge() != -1 )                           continue;
+
                 if ( tkm->pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
                 if (fabs(tkm->eta()) > MUMAXETA)                     continue;
 
@@ -494,12 +496,17 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 }
 
 
-                for (uint itrkp =0 ;  itrkp < tracks->size(); itrkp++){
+                for (uint itrkp =itrkm+1 ;  itrkp < tracks->size(); itrkp++){
                     
                     reco::TrackRef tkp(tracks,itrkp) ;                                                
      			    if ( tkp.isNull() == true)                           continue;
 //                     if (! tkp->quality(reco::TrackBase::highPurity))     continue;
+
                     if ( tkp->charge() != +1 )                           continue;
+
+                    // same sign!! 
+//                     if ( (tkp->charge()) * (tkm->charge()) != 1 )                 continue;
+
                     if ( tkp->pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
                     if ( fabs(tkp->eta()) > MUMAXETA)                    continue;
                     const reco::TransientTrack TrackpTT((*tkp), &(*bFieldHandle));
