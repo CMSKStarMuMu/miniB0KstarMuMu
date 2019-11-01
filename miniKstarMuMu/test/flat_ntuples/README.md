@@ -14,3 +14,13 @@ queue system (currently set up to work on the cluster in Milano) via the
 python submit_flat.py --help
 ```
 will print the input parameters needed by the script to run.
+You will find the flat ntuples in the folder ntuple/outdir, where outdir is one of the input parameters to the submit_flat.py script.
+
+## PU reweight on the MC
+In order to add to the MC (GEN and RECO) ntuples the weight needed to reproduce the pileup distribution in data, the script [pu_reweight_mc.sh](https://github.com/CMSKStarMuMu/miniB0KstarMuMu/blob/master/miniKstarMuMu/test/flat_ntuples/pu_reweight_mc.sh) is available.
+Simply run it with 
+```
+./pu_reweight_mc.sh
+```
+after having changed the input/output folders appropriately.
+
