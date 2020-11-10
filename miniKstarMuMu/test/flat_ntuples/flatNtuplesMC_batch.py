@@ -1,15 +1,17 @@
 from argparse import ArgumentParser
+from samples import *
 
 parser = ArgumentParser()
+parser.add_argument("sample",                                       help = "sample", nargs = '+', choices = samples.keys(), default = 'BJpsiK_ee_mc_2019Oct25' )
 parser.add_argument("-n"  , "--number"     , dest = "number"     ,  help = "number of file"        , default = '1')
 parser.add_argument("-f"  , "--folder"     , dest = "folder"     ,  help = "name of output folder" , default = 'default_folder')
 parser.add_argument("-g"  , "--dogen"      , dest = "dogen"      ,  help = "produce gen ntuples "  , default=False, action='store_true'      )
-parser.add_argument("-e"  , "--era"        , dest = "theera"     ,  help = "2018B,2018B..."              , default = '2016B') ## not used here
+# parser.add_argument("-e"  , "--era"        , dest = "theera"     ,  help = "2018B,2018B..."              , default = '2016B') ## not used here
 parser.add_argument("-c"  , "--chan"       , dest = "thechan"    ,  help = "LMNR, PSI"                   , default = 'LMNR' ) ## not used here
 # parser.add_argument("-d"  , "--dir"        , dest = "indir"      ,  help = "name of input folder (0000)" , default = '0000')
 
-options = parser.parse_args()
-if not options.number:   
+args = parser.parse_args()
+if not args.number:   
   parser.error('Number filename not given')
   
 import ROOT
@@ -24,7 +26,6 @@ import sys, math, itertools
 sys.path.append('/gwpool/users/fiorendi/p5prime/miniAOD/CMSSW_10_2_14/src/miniB0KstarMuMu/miniKstarMuMu')
 from utils.angular_vars import *
 from utils.utils import *
-from samples import *
 
 import numpy as np
 
@@ -39,40 +40,38 @@ paths = [
         ]  
 
 
-type       = options.thechan  ## LMNR, JPsi
+type       = args.thechan  ## LMNR, JPsi
 skim       = True
 skimSoftMu = True
+isNot2016  = False if '2016' in args.sample[0] else True
 ###############################################
-
 
 tree_lmnr = ROOT.TChain('B0KstMuMu/B0KstMuMuNTuple')
 
 indir = '0000'
-if int(options.number) >= 1000:  indir = '0001'
-if int(options.number) >= 2000:  indir = '0002'
-if int(options.number) >= 3000:  indir = '0003'
+if int(args.number) >= 1000:  indir = '0001'
+if int(args.number) >= 2000:  indir = '0002'
+if int(args.number) >= 3000:  indir = '0003'
 
+# tree_lmnr.Add('%s/%s/B0ToKstMuMu_%s.root'        %( samples[args.sample[0]]['path'],indir,args.number))
+tree_lmnr.Add('%s/%s/B0ToKstMuMu_miniaod_%s.root'%( samples[args.sample[0]]['path'],indir,args.number))  
 ## Jpsi MC
-if type == 'JPsi':
-  tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/miniB0KstarMuMu_2018MC_Apr30_MC_JPSI_Autumn18/190502_085631/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,options.number))
-
-if type == 'Psi':
-  tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BdToPsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/miniB0KstarMuMu_2018MC_Apr30_MC_PSI_Autumn18/190502_085619/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,options.number))
-
-## low mass non resonant
-if type == 'LMNR':
- 	tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BdToKstarMuMu_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/miniB0KstarMuMu_2018MC_Apr30_MC_LMNR_Autumn18/190502_085626/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,options.number))
-
-## jpsiX
-if type == 'JPsiX':
- 	tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BJpsiX_MuMu_270819/miniB0KstarMuMu_2018MC_Apr30_MC_JPSIX_Camilla/191001_111751/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,options.number))
+# if type == 'JPsi':
+#   tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/miniB0KstarMuMu_2018MC_Apr30_MC_JPSI_Autumn18/190502_085631/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,args.number))
+# 
+# if type == 'Psi':
+#   tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BdToPsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/miniB0KstarMuMu_2018MC_Apr30_MC_PSI_Autumn18/190502_085619/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,args.number))
+# 
+# ## jpsiX
+# if type == 'JPsiX':
+#  	tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BJpsiX_MuMu_270819/miniB0KstarMuMu_2018MC_Apr30_MC_JPSIX_Camilla/191001_111751/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,args.number))
 
 
-file_out_reco = ROOT.TFile('ntuples/mc/%s/reco_ntuple_%s_PostRefitMomenta_%s.root'%(options.folder,type,options.number), 'recreate')
+file_out_reco = ROOT.TFile('reco_ntuple_%s_PostRefitMomenta_%s.root'%(type,args.number), 'recreate')
 ntuple        = ROOT.TTree( 'ntuple', 'ntuple' )
 
-if options.dogen:
-    file_out_gen  = ROOT.TFile('ntuples/mc/%s/gen_ntuple_%s_PostRefitMomenta_%s.root'%(options.folder,type,options.number), 'recreate')
+if args.dogen:
+    file_out_gen  = ROOT.TFile('gen_ntuple_%s_PostRefitMomenta_%s.root'%(type,args.number), 'recreate')
     gen_ntuple    = ROOT.TTree( 'ntuple', 'ntuple' )
 
 
@@ -104,6 +103,7 @@ L1Names  = cms.vstring("L1_DoubleMu_11_4",
 '''
 eventN                           = array('L', [ 99 ]);  
 runN                             = array('d', [-99.]);  evbr .append(runN)
+lumi                             = array('d', [ 99.]);  evbr .append(lumi)
 recoVtxN                         = array('d', [-99.]);  evbr .append(recoVtxN)
 trueNumInteractionsMC            = array('d', [-99.]);  evbr .append(trueNumInteractionsMC)
 bsX                              = array('d', [-99.]);  evbr .append(bsX)
@@ -419,6 +419,7 @@ for i in branches:
 '''
 ntuple.Branch('runN',                   runN,                                   'runN/D')
 ntuple.Branch('eventN',                 eventN,                                 'eventN/L')
+ntuple.Branch('lumi',                   lumi,                                   'lumi/D')
 ntuple.Branch('recoVtxN',               recoVtxN,                               'recoVtxN/D')
 ntuple.Branch('trueNumInteractionsMC',  trueNumInteractionsMC,                  'trueNumInteractionsMC/D')
 ntuple.Branch('bsX',                    bsX,                                    'bsX/D')
@@ -722,10 +723,11 @@ if not skim:
 
 
 ### gen ntuple
-if options.dogen:
+if args.dogen:
 
     gen_ntuple.Branch('runN',                   runN,                                   'runN/D')
     gen_ntuple.Branch('eventN',                 eventN,                                 'eventN/L')
+    gen_ntuple.Branch('lumi',                   lumi,                                   'lumi/D')
     gen_ntuple.Branch('trueNumInteractionsMC',  trueNumInteractionsMC,                  'trueNumInteractionsMC/D')
     gen_ntuple.Branch('bsX',                    bsX,                                    'bsX/D')
     gen_ntuple.Branch('bsY',                    bsY,                                    'bsY/D')
@@ -773,7 +775,7 @@ if options.dogen:
 numEvents = tree_lmnr.GetEntries()
 print 'total number of events in tree:', numEvents
 
-ROOT.gROOT.LoadMacro('FindValueFromVectorOfBool.h+')
+ROOT.gROOT.LoadMacro('FindValueFromVectorOfBool.h')
 
 progressbarWidth = 40
 sys.stdout.write('Progress: [{}]'.format('-'*progressbarWidth))
@@ -863,6 +865,7 @@ for i, ev in enumerate(tree_lmnr):
 
     # per event quantities
     runN[0]                        = ev.runN
+    lumi[0]                        = ev.__getattr__('ls')
     recoVtxN[0]                    = ev.recoVtxN
     for index,ibx in enumerate(ev.bunchXingMC):
       if ibx==0:
@@ -872,7 +875,7 @@ for i, ev in enumerate(tree_lmnr):
     bsX[0]                         = ev.bsX
     bsY[0]                         = ev.bsY
 
-    if options.dogen:  gen_ntuple.Fill()
+    if args.dogen:  gen_ntuple.Fill()
 
     if not len(ev.bMass) > 0:
         continue
@@ -880,12 +883,13 @@ for i, ev in enumerate(tree_lmnr):
     if not any( path in ev.TrigTable[0] for path in paths):
         continue     
 
-    hlt_mums  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId == 13 ]
-    hlt_mups  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId ==-13 ]
-    hlt_trks  = [ihlt for ihlt in ev.hltObjs if abs(ihlt.pdgId) == 321]
+    if isNot2016:  ## not there in 2016 ntuples
+        hlt_mums  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId == 13 ]
+        hlt_mups  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId ==-13 ]
+        hlt_trks  = [ihlt for ihlt in ev.hltObjs if abs(ihlt.pdgId) == 321]
     
-    ## make all possible mumutk triplets from hlt
-    triplets = list(itertools.product(hlt_mums,hlt_mups,hlt_trks))
+        ## make all possible mumutk triplets from hlt
+        triplets = list(itertools.product(hlt_mums,hlt_mups,hlt_trks))
 
     ## now loop on candidates per event
     for icand in range(len(ev.bMass)):
@@ -895,33 +899,48 @@ for i, ev in enumerate(tree_lmnr):
         for var in isobr:
             var[0] = 0.
     
-        if skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
-                               ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
-                               ev.mumdxyBS[icand] < 0.3            and ev.mupdxyBS[icand] < 0.3      and \
-                               ev.mumdzBS[icand] < 20              and ev.mupdzBS[icand]  < 20       and \
-                               ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
-                               ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
+        if isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
+                                             ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
+                                             ev.mumdxyBS[icand] < 0.3            and ev.mupdxyBS[icand] < 0.3      and \
+                                             ev.mumdzBS[icand] < 20              and ev.mupdzBS[icand]  < 20       and \
+                                             ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
+                                             ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
+            continue
+
+        if not isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
+                                                 ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
+                                                 ev.mumdxyVtx[icand] < 0.3           and ev.mupdxyVtx[icand] < 0.3     and \
+                                                 ev.mumdzVtx[icand] < 20             and ev.mupdzVtx[icand]  < 20      and \
+                                                 ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
+                                                 ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
             continue
 
 
         ## trigger match: both muons should be matched + one track
         ## save the charge of the matched track to then apply pT cuts only to one of them
-        charge_matched = findTriggerMatching(triplets,
+        charge_matched = 99
+        if isNot2016:    
+            charge_matched = findTriggerMatching(triplets,
                                              ev.rawmumEta[icand],     ev.rawmumPhi[icand],     ev.rawmumPt[icand],
                                              ev.rawmupEta[icand],     ev.rawmupPhi[icand],     ev.rawmupPt[icand],
                                              ev.rawkstTrkmEta[icand], ev.rawkstTrkmPhi[icand], ev.rawkstTrkmPt[icand],
                                              ev.rawkstTrkpEta[icand], ev.rawkstTrkpPhi[icand], ev.rawkstTrkpPt[icand]
                                              ) 
-        if charge_matched == 0:
-            continue
+            if charge_matched == 0:
+                continue
    
-    
 
         trig[0]                        = paths.index(ev.TrigTable[0].split('_v')[0])
         l1_00_1p5[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4')
         l1_00_1p4[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
         l1_4_4[0]                      = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
         l1_4p5_4p5[0]                  = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu4p5_SQ_OS_dR_Max1p2')
+
+#         l1_11_4[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_11_4')
+#         l1_12_5[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_12_5')
+#         l1_10_0[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_10_0_dEta_Max1p8')
+#         l1_00[0]                       = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p6_dEta_Max1p8')
+#         l1_00_OS[0]                    = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p6_dEta_Max1p8_OS')
 
         ## per-candidate quantities
         bPt[0]                         = computePt( ev.bPx      [icand], ev.bPy       [icand] ) 
@@ -992,8 +1011,6 @@ for i, ev in enumerate(tree_lmnr):
         mumNormChi2[0]                 = ev.mumNormChi2[icand]
         mumDCABS[0]                    = ev.mumDCABS[icand]
         mumDCABSE[0]                   = ev.mumDCABSE[icand]
-        mumdxyBS[0]                   = ev.mumdxyBS[icand]
-        mumdzBS[0]                    = ev.mumdzBS[icand]
         mumMinIP2D[0]                  = ev.mumMinIP2D[icand]
         mumMinIP2DE[0]                 = ev.mumMinIP2DE[icand]
         mumNPixLayers[0]               = ev.mumNPixLayers[icand]
@@ -1013,8 +1030,6 @@ for i, ev in enumerate(tree_lmnr):
         mupNormChi2[0]                 = ev.mupNormChi2[icand]
         mupDCABS[0]                    = ev.mupDCABS[icand]
         mupDCABSE[0]                   = ev.mupDCABSE[icand]
-        mupdxyBS[0]                    = ev.mupdxyBS[icand]
-        mupdzBS[0]                     = ev.mupdzBS[icand]
         mupMinIP2D[0]                  = ev.mupMinIP2D[icand]
         mupMinIP2DE[0]                 = ev.mupMinIP2DE[icand]
         mupNPixLayers[0]               = ev.mupNPixLayers[icand]
@@ -1029,6 +1044,12 @@ for i, ev in enumerate(tree_lmnr):
         mupTMOneStationTight     [0] = mupCategoryDict['TMOneStationTight']
         mupTMOneStationLoose     [0] = mupCategoryDict['TMOneStationLoose']
         
+        if isNot2016: 
+            mumdxyBS[0]         = ev.mumdxyBS[icand]
+            mumdzBS[0]          = ev.mumdzBS[icand]
+            mupdxyBS[0]         = ev.mupdxyBS[icand]
+            mupdzBS[0]          = ev.mupdzBS[icand]
+
         
         kstTrkmHighPurity[0]           = ROOT.FindValueFromVectorOfBool(ev.kstTrkmHighPurity, icand)
         kstTrkmCL[0]                   = ev.kstTrkmCL[icand]
@@ -1104,7 +1125,7 @@ for i, ev in enumerate(tree_lmnr):
         dR_mum_trkm[0] = addDR(mumEta[0], mumPhi[0], kstTrkmEta[0], kstTrkmPhi[0])
         dR_mup_trkp[0] = addDR(mupEta[0], mupPhi[0], kstTrkpEta[0], kstTrkpPhi[0])
 
-
+        if (dR_mum_trkm[0] < 1.E-4 or dR_mup_trkp[0] < 1.E-4):  continue;
 
         ###########  mu - isolation ####################
         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
@@ -1286,7 +1307,7 @@ file_out_reco.cd()
 ntuple.Write()
 file_out_reco.Close()
 
-if options.dogen:
+if args.dogen:
     file_out_gen.cd()
     gen_ntuple.Write()
     file_out_gen.Close()
