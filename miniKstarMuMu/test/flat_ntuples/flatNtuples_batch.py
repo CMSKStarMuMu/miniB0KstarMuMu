@@ -1,14 +1,16 @@
 from argparse import ArgumentParser
+from samples import *
 
 parser = ArgumentParser()
+parser.add_argument("sample",                                       help = "sample", nargs = '+', choices = samples.keys(), default = 'BJpsiK_ee_mc_2019Oct25' )
 parser.add_argument("-n"  , "--number"     , dest = "number"     ,  help = "number of file"              , default = '1')
 parser.add_argument("-f"  , "--folder"     , dest = "folder"     ,  help = "name of output folder"       , default = 'default_folder')
 # parser.add_argument("-d"  , "--dir"        , dest = "indir"      ,  help = "name of input folder (0000)" , default = '0000')
 parser.add_argument("-e"  , "--era"        , dest = "theera"     ,  help = "2018B,2018B..."              , default = '2016B')
 parser.add_argument("-c"  , "--chan"       , dest = "thechan"    ,  help = "LMNR, PSI"                   , default = 'LMNR' )
 
-options = parser.parse_args()
-if not options.number:   
+args = parser.parse_args()
+if not args.number:   
   parser.error('Number filename not given')
   
 import ROOT
@@ -22,20 +24,17 @@ from PhysicsTools.HeppyCore.utils.deltar import deltaR, deltaPhi
 import sys, math, itertools
 sys.path.append('/gwpool/users/fiorendi/p5prime/miniAOD/CMSSW_10_2_14/src/miniB0KstarMuMu/miniKstarMuMu')
 from utils.angular_vars import *
-from utils.utils        import *
-from samples            import *
+from utils.utils import *
 
 import numpy as np
 
 ###############################################
 ## Parameters for the flattening:
 
-type       = options.thechan 
-# eras       = []    
-# eras.append(options.theera)
-
+type       = args.thechan 
 skim       = True
 skimSoftMu = True
+isNot2016  = False if '2016' in args.sample[0] else True
 
 if type == 'LMNR':
   paths = [ 
@@ -51,18 +50,19 @@ if type == 'PSI':
 ###############################################
 tree_lmnr = ROOT.TChain('B0KstMuMu/B0KstMuMuNTuple')
 
-# thekey = type + '_' + options.theera
-thekey = options.theera
+# thekey = type + '_' + args.theera
+thekey = args.theera
 
 indir = '0000'
-if int(options.number) >= 1000:  indir = '0001'
-if int(options.number) >= 2000:  indir = '0002'
-if int(options.number) >= 3000:  indir = '0003'
-if int(options.number) >= 4000:  indir = '0004'
+if int(args.number) >= 1000:  indir = '0001'
+if int(args.number) >= 2000:  indir = '0002'
+if int(args.number) >= 3000:  indir = '0003'
+if int(args.number) >= 4000:  indir = '0004'
 
-tree_lmnr.Add('%s/%s/B0ToKstMuMu_miniaod_%s.root'%(era_dict[thekey][0],indir,options.number))
+# tree_lmnr.Add('%s/%s/B0ToKstMuMu_miniaod_%s.root'%(era_dict[thekey][0],indir,args.number))
+tree_lmnr.Add('%s/%s/B0ToKstMuMu_miniaod_%s.root'%( samples[args.sample[0]]['path'],indir,args.number))
 
-file_out = ROOT.TFile( 'ntuples/%s/ntuple_flat_%s_PostRefitMomenta_%s%s_Feb5_%s.root'%(options.folder,type,options.theera,skimSoftMu*'_skimSoftMu',options.number), 'recreate')
+file_out = ROOT.TFile( 'ntuple_flat_%s_PostRefitMomenta_%s%s_%s.root'%(type,args.sample,skimSoftMu*'_skimSoftMu',args.number), 'recreate')
 ntuple   = ROOT.TTree( 'ntuple', 'ntuple' )
 
 
@@ -603,7 +603,7 @@ if not skim:
 numEvents = tree_lmnr.GetEntries()
 print 'total number of events in tree:', numEvents
 
-ROOT.gROOT.LoadMacro('FindValueFromVectorOfBool.h+')
+ROOT.gROOT.LoadMacro('FindValueFromVectorOfBool.h')
 
 progressbarWidth = 40
 sys.stdout.write('Progress: [{}]'.format('-'*progressbarWidth))
@@ -627,12 +627,13 @@ for i, ev in enumerate(tree_lmnr):
     if not any( path in ev.TrigTable[0] for path in paths):
         continue     
 
-    hlt_mums  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId == 13 ]
-    hlt_mups  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId ==-13 ]
-    hlt_trks  = [ihlt for ihlt in ev.hltObjs if abs(ihlt.pdgId) == 321]
+    if isNot2016:  ## not there in 2016 ntuples
+        hlt_mums  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId == 13 ]
+        hlt_mups  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId ==-13 ]
+        hlt_trks  = [ihlt for ihlt in ev.hltObjs if abs(ihlt.pdgId) == 321]
     
-    ## make all possible mumutk triplets from hlt
-    triplets = list(itertools.product(hlt_mums,hlt_mups,hlt_trks))
+        ## make all possible mumutk triplets from hlt
+        triplets = list(itertools.product(hlt_mums,hlt_mups,hlt_trks))
 
     ## now loop on candidates per event
     for icand in range(len(ev.bMass)):
@@ -642,25 +643,35 @@ for i, ev in enumerate(tree_lmnr):
         for var in isobr:
             var[0] = 0.
     
-        if skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
-                               ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
-                               ev.mumdxyBS[icand] < 0.3            and ev.mupdxyBS[icand] < 0.3      and \
-                               ev.mumdzBS[icand] < 20              and ev.mupdzBS[icand]  < 20       and \
-                               ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
-                               ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
+        if isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
+                                             ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
+                                             ev.mumdxyBS[icand] < 0.3            and ev.mupdxyBS[icand] < 0.3      and \
+                                             ev.mumdzBS[icand] < 20              and ev.mupdzBS[icand]  < 20       and \
+                                             ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
+                                             ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
+            continue
+
+        if not isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
+                                                 ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
+                                                 ev.mumdxyVtx[icand] < 0.3           and ev.mupdxyVtx[icand] < 0.3     and \
+                                                 ev.mumdzVtx[icand] < 20             and ev.mupdzVtx[icand]  < 20      and \
+                                                 ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
+                                                 ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
             continue
 
 
         ## trigger match: both muons should be matched + one track
         ## save the charge of the matched track to then apply pT cuts only to one of them
-        charge_matched = findTriggerMatching(triplets,
+        charge_matched = 99
+        if isNot2016:    
+            charge_matched = findTriggerMatching(triplets,
                                              ev.rawmumEta[icand],     ev.rawmumPhi[icand],     ev.rawmumPt[icand],
                                              ev.rawmupEta[icand],     ev.rawmupPhi[icand],     ev.rawmupPt[icand],
                                              ev.rawkstTrkmEta[icand], ev.rawkstTrkmPhi[icand], ev.rawkstTrkmPt[icand],
                                              ev.rawkstTrkpEta[icand], ev.rawkstTrkpPhi[icand], ev.rawkstTrkpPt[icand]
                                              ) 
-        if charge_matched == 0:
-            continue
+            if charge_matched == 0:
+                continue
    
 
     
@@ -753,8 +764,6 @@ for i, ev in enumerate(tree_lmnr):
         mumNormChi2[0]                 = ev.mumNormChi2[icand]
         mumDCABS[0]                    = ev.mumDCABS[icand]
         mumDCABSE[0]                   = ev.mumDCABSE[icand]
-        mumdxyBS[0]                    = ev.mumdxyBS[icand]
-        mumdzBS[0]                     = ev.mumdzBS[icand]
         mumMinIP2D[0]                  = ev.mumMinIP2D[icand]
         mumMinIP2DE[0]                 = ev.mumMinIP2DE[icand]
         mumNPixLayers[0]               = ev.mumNPixLayers[icand]
@@ -790,6 +799,12 @@ for i, ev in enumerate(tree_lmnr):
         mupTMOneStationTight     [0] = mupCategoryDict['TMOneStationTight']
         mupTMOneStationLoose     [0] = mupCategoryDict['TMOneStationLoose']
         
+        if isNot2016: 
+            mumdxyBS[0]         = ev.mumdxyBS[icand]
+            mumdzBS[0]          = ev.mumdzBS[icand]
+            mupdxyBS[0]         = ev.mupdxyBS[icand]
+            mupdzBS[0]          = ev.mupdzBS[icand]
+
         
         kstTrkmHighPurity[0]           = ROOT.FindValueFromVectorOfBool(ev.kstTrkmHighPurity, icand)
         kstTrkmCL[0]                   = ev.kstTrkmCL[icand]
@@ -864,7 +879,7 @@ for i, ev in enumerate(tree_lmnr):
         dR_mum_trkm[0] = addDR(mumEta[0], mumPhi[0], kstTrkmEta[0], kstTrkmPhi[0])
         dR_mup_trkp[0] = addDR(mupEta[0], mupPhi[0], kstTrkpEta[0], kstTrkpPhi[0])
 
-
+        if (dR_mum_trkm[0] < 1.E-4 or dR_mup_trkp[0] < 1.E-4):  continue;
 
         ###########  mu - isolation ####################
         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
