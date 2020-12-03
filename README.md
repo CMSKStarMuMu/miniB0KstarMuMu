@@ -19,6 +19,11 @@ cd miniB0KstarMuMu/miniKstarMuMu/test
 cmsRun miniKstarMuMu_cfg.py
 ```
 
+For 10X releases you should instead use
+```
+git checkout packed-cmssw/addPATSelector1012 PhysicsTools/PatAlgos/plugins/PATObjectSelector.cc
+git checkout packed-cmssw/addPATSelector1012 PhysicsTools/PatAlgos/plugins/PATObjectSelector.h
+```
 **test/flat_ntuples**  
 scripts to convert ntuples with array as branches into plain ntuples; multiple candidates per event are kept and converted into multiple entries
 
