@@ -496,10 +496,10 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 }
 
 
-                for (uint itrkp =itrkm+1 ;  itrkp < tracks->size(); itrkp++){
+                for (uint itrkp =0 ;  itrkp < tracks->size(); itrkp++){
                     
                     reco::TrackRef tkp(tracks,itrkp) ;                                                
-     			    if ( tkp.isNull() == true)                           continue;
+                    if ( tkp.isNull() == true)                           continue;
 //                     if (! tkp->quality(reco::TrackBase::highPurity))     continue;
 
                     if ( tkp->charge() != +1 )                           continue;
@@ -1336,21 +1336,21 @@ void miniKstarMuMu::MonteCarloStudies(const edm::Event& iEvent)
                 {
                     if (printMsg)   std::cout << "     PdgID: " << dau.pdgId() << " pt " << dau.pt() << " eta: " << dau.eta() << " phi: " << dau.phi() << std::endl;
                     
-                    if (dau.pdgId() == 13) {
+                    if (dau.pdgId() == 13 && fabs(dau.eta()) < 2.5 && dau.pt() > 2.5) {
                         found_mum = true;
                         genMum = &dau;
                     }
-                    else if (dau.pdgId() == -13) {
+                    else if (dau.pdgId() == -13 && fabs(dau.eta()) < 2.5 && dau.pt() > 2.5) {
                         found_mup = true;
                         genMup = &dau;
                     }
-                    else if (dau.pdgId() == 211 || dau.pdgId() == 321 ) {
+                    else if ( (dau.pdgId() == 211 || dau.pdgId() == 321) && fabs(dau.eta()) < 2.5 && dau.pt() > 0.4) {
                         found_trkp = true;
                         genTrkp = &dau;
                     }
-                    else if (dau.pdgId() == -211 || dau.pdgId() == -321 ) {
+                    else if ( (dau.pdgId() == -211 || dau.pdgId() == -321) && fabs(dau.eta()) < 2.5 && dau.pt() > 0.4) {
                         found_trkm = true;
-                        genTrkm = &dau;
+                        genTrkm = &dau;  
                     }
                     
                 }
