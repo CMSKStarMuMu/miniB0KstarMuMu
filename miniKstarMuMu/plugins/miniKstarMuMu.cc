@@ -70,7 +70,7 @@
 // # Truth matching cuts #
 // #######################
 #define RCUTMU 0.004 // [eta-phi]
-#define RCUTTRK 0.3  // [eta-phi]
+#define RCUTTRK 0.1  // [eta-phi] // was 0.3
 
 float   mumasserr = 3.5e-9;
 
@@ -496,10 +496,10 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                 }
 
 
-                for (uint itrkp =itrkm+1 ;  itrkp < tracks->size(); itrkp++){
+                for (uint itrkp = 0 ;  itrkp < tracks->size(); itrkp++){
                     
                     reco::TrackRef tkp(tracks,itrkp) ;                                                
-     			    if ( tkp.isNull() == true)                           continue;
+     		    if ( tkp.isNull() == true)                           continue;
 //                     if (! tkp->quality(reco::TrackBase::highPurity))     continue;
 
                     if ( tkp->charge() != +1 )                           continue;
