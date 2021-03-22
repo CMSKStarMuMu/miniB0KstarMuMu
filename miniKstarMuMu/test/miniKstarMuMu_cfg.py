@@ -18,13 +18,11 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 process.load('Configuration.Geometry.GeometryIdeal_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string('94X_dataRun2_v10') ## for 2016
-# process.GlobalTag.globaltag = cms.string('94X_dataRun2_v11') ## for 2017
-# process.GlobalTag.globaltag = cms.string('94X_mc2017_realistic_v14')
+process.GlobalTag.globaltag = cms.string('102X_dataRun2_v13') ## for data
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-         'root://cmsxrootd-site.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/00000/20D0F064-AE8A-E811-B500-0025905A6126.root',
+         'root://cms-xrd-global.cern.ch//store/data/Run2016D/DoubleMuonLowMass/MINIAOD/17Jul2018-v1/00000/0640371F-618B-E811-920D-A4BF01013D80.root',
 #          'root://cmsxrootd.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/40000/CEC0EC25-998A-E811-9141-1866DA890268.root',
 #          'root://cmsxrootd-site.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/40000/720A2BF1-E68B-E811-B8E8-0CC47A7C357E.root'   ,
 #          'root://cmsxrootd.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/00000/B261F4B0-D18A-E811-BBD5-0CC47A4D7694.root'      
@@ -78,6 +76,7 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
                            "L1_DoubleMu_10_0_dEta_Max1p8",
                            "L1_DoubleMu0er1p6_dEta_Max1p8", 
                            "L1_DoubleMu0er1p6_dEta_Max1p8_OS",
+                           "L1_DoubleMu0er1p4_dEta_Max1p8_OS",
                     ),
 
     packed = cms.InputTag("packedGenParticles"),
@@ -104,7 +103,7 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
     KstMass          = cms.untracked.double(3.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
     HadDCASBS        = cms.untracked.double(0.8 ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
     HadpT            = cms.untracked.double( .8 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
-    MaxB0RoughMass   = cms.untracked.double(25. ),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
+    MaxB0RoughMass   = cms.untracked.double(20. ),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
 
     printMsg         = cms.untracked.bool(False)
 )

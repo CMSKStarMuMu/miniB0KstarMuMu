@@ -714,6 +714,7 @@ void B0KstMuMuTreeContent::ClearScalars ()
   // # Run Number, event number, #reco vtx and event weight #
   // ########################################################
   runN            = 0;
+  ls              = 0;
   eventN          = 0;
   recoVtxN        = 0;
   evWeight        = 1;
@@ -1058,6 +1059,7 @@ void B0KstMuMuTreeContent::MakeTreeBranches (TTree* theTree)
   // # Run Number, event number, #reco vtx and event weight #
   // ########################################################
   theTree->Branch("runN",            &runN,            "runN/i");
+  theTree->Branch("ls",              &ls,              "ls/i");
   theTree->Branch("eventN",          &eventN,          "eventN/i");
   theTree->Branch("recoVtxN",        &recoVtxN,        "recoVtxN/i");
   theTree->Branch("evWeight",        &evWeight,        "evWeight/D");

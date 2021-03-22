@@ -26,6 +26,7 @@ class B0KstMuMuTreeContent
   // # Run Number, event number, #reco vtx and event weight #
   // ########################################################
   unsigned int              runN;
+  unsigned int              ls;
   unsigned int              eventN;
   unsigned int              recoVtxN;
   double                    evWeight;
