@@ -1,4 +1,5 @@
 #include "../interface/Utils.h"
+#include "DataFormats/Math/interface/deltaR.h"
 // #include "../interface/ReadParameters.h"
 // #include "B0KstarMM/B0KstMuMu/interface/Utils.h"
 // #include "B0KstarMM/B0KstMuMu/interface/ReadParameters.h"
@@ -132,7 +133,8 @@ double Utils::computeEtaPhiDistance (double Px1,
   double eta1 = computeEta (Px1,Py1,Pz1);
   double phi2 = computePhi (Px2,Py2);
   double eta2 = computeEta (Px2,Py2,Pz2);
-  return sqrt((eta1-eta2) * (eta1-eta2) + (phi1-phi2) * (phi1-phi2));
+  return deltaR(eta1,eta2,phi1,phi2);
+//   return sqrt((eta1-eta2) * (eta1-eta2) + (phi1-phi2) * (phi1-phi2));
 }
 
 void Utils::computeLS (double Vx,
