@@ -29,7 +29,6 @@ from utils.utils import *
 
 import numpy as np
 
-
 ###############################################
 ## Parameters for the flattening:
 
@@ -44,6 +43,9 @@ type       = args.thechan  ## LMNR, JPsi
 skim       = True
 skimSoftMu = True
 isNot2016  = False if '2016' in args.sample[0] else True
+year       = 2018
+if '2016' in args.sample[0]:  year = 2016 
+elif '2017' in args.sample[0]:  year = 2017 
 ###############################################
 
 tree_lmnr = ROOT.TChain('B0KstMuMu/B0KstMuMuNTuple')
@@ -67,11 +69,11 @@ tree_lmnr.Add('%s/%s/B0ToKstMuMu_miniaod_%s.root'%( samples[args.sample[0]]['pat
 #  	tree_lmnr.Add('/gwteras/cms/store/user/fiorendi/p5prime/BJpsiX_MuMu_270819/miniB0KstarMuMu_2018MC_Apr30_MC_JPSIX_Camilla/191001_111751/%s/B0ToKstMuMu_miniaod_%s.root'%(indir,args.number))
 
 
-file_out_reco = ROOT.TFile('reco_ntuple_%s_PostRefitMomenta_%s.root'%(type,args.number), 'recreate')
+file_out_reco = ROOT.TFile('reco_ntuple_%s_%s.root'%(type,args.number), 'recreate')
 ntuple        = ROOT.TTree( 'ntuple', 'ntuple' )
 
 if args.dogen:
-    file_out_gen  = ROOT.TFile('gen_ntuple_%s_PostRefitMomenta_%s.root'%(type,args.number), 'recreate')
+    file_out_gen  = ROOT.TFile('gen_ntuple_%s_%s.root'%(type,args.number), 'recreate')
     gen_ntuple    = ROOT.TTree( 'ntuple', 'ntuple' )
 
 
@@ -81,16 +83,15 @@ if args.dogen:
 print '@@@@@@@@@@@     flattening ntuple     @@@@@@@@@@@'
 print 'input file: ', tree_lmnr.GetFile()
 
-try:
-  tree_lmnr.GetEntries()
+try:    tree_lmnr.GetEntries()
 except:
   print 'ntuple tree not found'
   exit()
 
 
-evbr  = []
 newbr = []
 isobr = []
+evbr  = []
 
 '''
 for i in branches:
@@ -109,10 +110,17 @@ trueNumInteractionsMC            = array('d', [-99.]);  evbr .append(trueNumInte
 bsX                              = array('d', [-99.]);  evbr .append(bsX)
 bsY                              = array('d', [-99.]);  evbr .append(bsY)
 trig                             = array('d', [-99.]);  newbr.append(trig)
-l1_00_1p5                        = array('d', [-99.]);  newbr.append(l1_00_1p5 )
-l1_00_1p4                        = array('d', [-99.]);  newbr.append(l1_00_1p4 )
-l1_4_4                           = array('d', [-99.]);  newbr.append(l1_4_4    )
-l1_4p5_4p5                       = array('d', [-99.]);  newbr.append(l1_4p5_4p5)
+if isNot2016:    
+    l1_00_1p5                        = array('d', [-99.]);  newbr.append(l1_00_1p5 )
+    l1_00_1p4                        = array('d', [-99.]);  newbr.append(l1_00_1p4 )
+    l1_4_4                           = array('d', [-99.]);  newbr.append(l1_4_4    )
+    l1_4p5_4p5                       = array('d', [-99.]);  newbr.append(l1_4p5_4p5)
+else:
+    l1_11_4                          = array('d', [-99.]);  newbr.append(l1_11_4 )
+    l1_12_5                          = array('d', [-99.]);  newbr.append(l1_12_5 )
+    l1_10_0                          = array('d', [-99.]);  newbr.append(l1_10_0 )
+    l1_00                            = array('d', [-99.]);  newbr.append(l1_00   )
+    l1_00_OS                         = array('d', [-99.]);  newbr.append(l1_00_OS)
 bMass                            = array('d', [-99.]);  newbr.append(bMass)
 bMassE                           = array('d', [-99.]);  newbr.append(bMassE)
 bBarMass                         = array('d', [-99.]);  newbr.append(bBarMass)
@@ -220,6 +228,12 @@ mumDeltaRwithMC                  = array('d', [-99.]);  newbr.append(mumDeltaRwi
 mupDeltaRwithMC                  = array('d', [-99.]);  newbr.append(mupDeltaRwithMC)
 kstTrkpDeltaRwithMC              = array('d', [-99.]);  newbr.append(kstTrkpDeltaRwithMC)
 kstTrkmDeltaRwithMC              = array('d', [-99.]);  newbr.append(kstTrkmDeltaRwithMC)
+
+dr_mup_genMup                    = array('d', [-99.]);  newbr.append(dr_mup_genMup )          
+dr_mum_genMum                    = array('d', [-99.]);  newbr.append(dr_mum_genMum )    
+dr_tkm_genTkm                    = array('d', [-99.]);  newbr.append(dr_tkm_genTkm )    
+dr_tkp_genTkp                    = array('d', [-99.]);  newbr.append(dr_tkp_genTkp )    
+
 
 genSignal                        = array('d', [-99.]);  evbr.append(genSignal)
 genSignHasFSR                    = array('d', [-99.]);  evbr.append(genSignHasFSR)
@@ -331,21 +345,20 @@ cos_theta_l                      = array('d', [-99.]); newbr.append(cos_theta_l)
 cos_theta_k                      = array('d', [-99.]); newbr.append(cos_theta_k)
 phi_kst_mumu                     = array('d', [-99.]); newbr.append(phi_kst_mumu)
 
-mumIsoPt_dr03                     = array('d',[0.]); isobr.append( mumIsoPt_dr03   )   
-mupIsoPt_dr03                     = array('d',[0.]); isobr.append( mupIsoPt_dr03   )   
-kstTrkmIsoPt_dr03                 = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr03   )   
-kstTrkpIsoPt_dr03                 = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr03   )   
+mumIsoPt_dr03                    = array('d',[0.]); isobr.append( mumIsoPt_dr03   )   
+mupIsoPt_dr03                    = array('d',[0.]); isobr.append( mupIsoPt_dr03   )   
+kstTrkmIsoPt_dr03                = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr03   )   
+kstTrkpIsoPt_dr03                = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr03   )   
 
-mumIsoPt_dr04                     = array('d',[0.]); isobr.append( mumIsoPt_dr04   )   
-mupIsoPt_dr04                     = array('d',[0.]); isobr.append( mupIsoPt_dr04   )   
-kstTrkmIsoPt_dr04                 = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr04   )   
-kstTrkpIsoPt_dr04                 = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr04   )   
+mumIsoPt_dr04                    = array('d',[0.]); isobr.append( mumIsoPt_dr04   )   
+mupIsoPt_dr04                    = array('d',[0.]); isobr.append( mupIsoPt_dr04   )   
+kstTrkmIsoPt_dr04                = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr04   )   
+kstTrkpIsoPt_dr04                = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr04   )   
 
-mumIsoPt_dr05                     = array('d',[0.]); isobr.append( mumIsoPt_dr05   )   
-mupIsoPt_dr05                     = array('d',[0.]); isobr.append( mupIsoPt_dr05   )   
-kstTrkmIsoPt_dr05                 = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr05   )   
-kstTrkpIsoPt_dr05                 = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr05   )   
-
+weight                    = array('d', [-99.]);  evbr.append( weight )
+if year==2016:
+  weightBF                    = array('d', [-99.]);  evbr.append( weightBF )
+  weightGH                    = array('d', [-99.]);  evbr.append( weightGH )
 
 if not skim:
   mumNPixHits                      = array('d', [-99.]);  newbr.append(mumNPixHits)
@@ -426,10 +439,18 @@ ntuple.Branch('bsX',                    bsX,                                    
 ntuple.Branch('bsY',                    bsY,                                    'bsY/D')
 
 ntuple.Branch('trig',                   trig,                                   'trig/D')
-ntuple.Branch('l1_00_1p5',              l1_00_1p5 ,                             'l1_00_1p5/D')
-ntuple.Branch('l1_00_1p4',              l1_00_1p4 ,                             'l1_00_1p4/D')
-ntuple.Branch('l1_4_4',                 l1_4_4 ,                                'l1_4_4/D')
-ntuple.Branch('l1_4p5_4p5',             l1_4p5_4p5 ,                            'l1_4p5_4p5/D')
+
+if isNot2016:    
+    ntuple.Branch('l1_00_1p5',              l1_00_1p5 ,                             'l1_00_1p5/D')
+    ntuple.Branch('l1_00_1p4',              l1_00_1p4 ,                             'l1_00_1p4/D')
+    ntuple.Branch('l1_4_4',                 l1_4_4 ,                                'l1_4_4/D')
+    ntuple.Branch('l1_4p5_4p5',             l1_4p5_4p5 ,                            'l1_4p5_4p5/D')
+else:
+    ntuple.Branch('l1_11_4',                l1_11_4 ,                               'l1_11_4/D')
+    ntuple.Branch('l1_12_5',                l1_12_5 ,                               'l1_12_5/D')
+    ntuple.Branch('l1_10_0',                l1_10_0 ,                               'l1_10_0/D')
+    ntuple.Branch('l1_00',                  l1_00   ,                               'l1_00/D')
+    ntuple.Branch('l1_00_OS',               l1_00_OS,                               'l1_00_OS/D')
 
 ntuple.Branch('bMass',                  bMass,                                  'bMass/D')
 ntuple.Branch('bMassE',                 bMassE,                                 'bMassE/D')
@@ -531,7 +552,6 @@ ntuple.Branch('cos_theta_l' ,           cos_theta_l ,                           
 ntuple.Branch('cos_theta_k' ,           cos_theta_k ,                           'cos_theta_k/D')
 ntuple.Branch('phi_kst_mumu',           phi_kst_mumu,                           'phi_kst_mumu/D')
 
-
 ntuple.Branch('bMinusVtxCL',            bMinusVtxCL     ,                       'bMinusVtxCL/D')
 ntuple.Branch('bMinusCosAlphaBS',       bMinusCosAlphaBS,                       'bMinusCosAlphaBS/D')
 ntuple.Branch('bPlusVtxCL',             bPlusVtxCL      ,                       'bPlusVtxCL/D')
@@ -615,6 +635,7 @@ ntuple.Branch('kstTrkpTMOneStationLoose',     kstTrkpTMOneStationLoose      ,   
 ntuple.Branch('kstTrkpTrackerMuonArbitrated', kstTrkpTrackerMuonArbitrated  ,               'kstTrkpTrackerMuonArbitrated/D')
 
 
+
 ntuple.Branch('bPt',        bPt          ,               'bPt/D')
 ntuple.Branch('kstPt',      kstPt        ,               'kstPt/D')
 ntuple.Branch('mumuPt',     mumuPt       ,               'mumuPt/D')
@@ -654,12 +675,22 @@ ntuple.Branch('mupIsoPt_dr04'    , mupIsoPt_dr04    , 'mupIsoPt_dr04/D'   )
 ntuple.Branch('kstTrkmIsoPt_dr04', kstTrkmIsoPt_dr04, 'kstTrkmIsoPt_dr04/D'   )   
 ntuple.Branch('kstTrkpIsoPt_dr04', kstTrkpIsoPt_dr04, 'kstTrkpIsoPt_dr04/D'   )   
 
-ntuple.Branch('mumIsoPt_dr05'    , mumIsoPt_dr05    , 'mumIsoPt_dr05/D'   )   
-ntuple.Branch('mupIsoPt_dr05'    , mupIsoPt_dr05    , 'mupIsoPt_dr05/D'   )   
-ntuple.Branch('kstTrkmIsoPt_dr05', kstTrkmIsoPt_dr05, 'kstTrkmIsoPt_dr05/D'   )   
-ntuple.Branch('kstTrkpIsoPt_dr05', kstTrkpIsoPt_dr05, 'kstTrkpIsoPt_dr05/D'   )   
+# ntuple.Branch('mumIsoPt_dr05'    , mumIsoPt_dr05    , 'mumIsoPt_dr05/D'   )   
+# ntuple.Branch('mupIsoPt_dr05'    , mupIsoPt_dr05    , 'mupIsoPt_dr05/D'   )   
+# ntuple.Branch('kstTrkmIsoPt_dr05', kstTrkmIsoPt_dr05, 'kstTrkmIsoPt_dr05/D'   )   
+# ntuple.Branch('kstTrkpIsoPt_dr05', kstTrkpIsoPt_dr05, 'kstTrkpIsoPt_dr05/D'   )   
 
 ntuple.Branch('charge_trig_matched', charge_trig_matched, 'charge_trig_matched/D')
+
+ntuple.Branch('dr_mup_genMup', dr_mup_genMup, 'dr_mup_genMup/D')
+ntuple.Branch('dr_mum_genMum', dr_mum_genMum, 'dr_mum_genMum/D')
+ntuple.Branch('dr_tkm_genTkm', dr_tkm_genTkm, 'dr_tkm_genTkm/D')
+ntuple.Branch('dr_tkp_genTkp', dr_tkp_genTkp, 'dr_tkp_genTkp/D')
+
+ntuple.Branch('weight', weight, 'weight/D')
+if year==2016:
+  ntuple.Branch('weightBF', weightBF, 'weightBF/D')
+  ntuple.Branch('weightGH', weightGH, 'weightGH/D')
 
 
 if not skim:
@@ -729,36 +760,36 @@ if args.dogen:
     gen_ntuple.Branch('eventN',                 eventN,                                 'eventN/L')
     gen_ntuple.Branch('lumi',                   lumi,                                   'lumi/D')
     gen_ntuple.Branch('trueNumInteractionsMC',  trueNumInteractionsMC,                  'trueNumInteractionsMC/D')
-    gen_ntuple.Branch('bsX',                    bsX,                                    'bsX/D')
-    gen_ntuple.Branch('bsY',                    bsY,                                    'bsY/D')
+#     gen_ntuple.Branch('bsX',                    bsX,                                    'bsX/D')
+#     gen_ntuple.Branch('bsY',                    bsY,                                    'bsY/D')
     
     gen_ntuple.Branch('genSignal',              genSignal,                              'genSignal/D')
     gen_ntuple.Branch('genSignHasFSR',          genSignHasFSR,                          'genSignHasFSR/D')
-    gen_ntuple.Branch('genSignKstHasFSR',       genSignKstHasFSR,                       'genSignKstHasFSR/D')
-    gen_ntuple.Branch('genSignPsiHasFSR',       genSignPsiHasFSR,                       'genSignPsiHasFSR/D')
-    gen_ntuple.Branch('genPriVtxX',             genPriVtxX,                             'genPriVtxX/D')
-    gen_ntuple.Branch('genPriVtxY',             genPriVtxY,                             'genPriVtxY/D')
-    gen_ntuple.Branch('genPriVtxZ',             genPriVtxZ,                             'genPriVtxZ/D')
-    gen_ntuple.Branch('genB0Mass',              genB0Mass,                              'genB0Mass/D')
+#     gen_ntuple.Branch('genSignKstHasFSR',       genSignKstHasFSR,                       'genSignKstHasFSR/D')
+#     gen_ntuple.Branch('genSignPsiHasFSR',       genSignPsiHasFSR,                       'genSignPsiHasFSR/D')
+#     gen_ntuple.Branch('genPriVtxX',             genPriVtxX,                             'genPriVtxX/D')
+#     gen_ntuple.Branch('genPriVtxY',             genPriVtxY,                             'genPriVtxY/D')
+#     gen_ntuple.Branch('genPriVtxZ',             genPriVtxZ,                             'genPriVtxZ/D')
+#     gen_ntuple.Branch('genB0Mass',              genB0Mass,                              'genB0Mass/D')
     gen_ntuple.Branch('genKstMass',             genKstMass,                             'genKstMass/D')
     gen_ntuple.Branch('genKstTrkmID',           genKstTrkmID,                           'genKstTrkmID/D')
-    gen_ntuple.Branch('genKstTrkpMother',       genKstTrkpMother,                       'genKstTrkpMother/D')
+#     gen_ntuple.Branch('genKstTrkpMother',       genKstTrkpMother,                       'genKstTrkpMother/D')
     gen_ntuple.Branch('genKstTrkpID',           genKstTrkpID,                           'genKstTrkpID/D')
 
     gen_ntuple.Branch('genbPt',        genbPt          ,               'genbPt/D')
-    gen_ntuple.Branch('genkstPt',      genkstPt        ,               'genkstPt/D')
+#     gen_ntuple.Branch('genkstPt',      genkstPt        ,               'genkstPt/D')
     gen_ntuple.Branch('genmumPt',      genmumPt        ,               'genmumPt/D')
     gen_ntuple.Branch('genmupPt',      genmupPt        ,               'genmupPt/D')
     gen_ntuple.Branch('genkstTrkmPt',  genkstTrkmPt    ,               'genkstTrkmPt/D')
     gen_ntuple.Branch('genkstTrkpPt',  genkstTrkpPt    ,               'genkstTrkpPt/D')
     gen_ntuple.Branch('genbPhi',       genbPhi         ,               'genbPhi/D')
-    gen_ntuple.Branch('genkstPhi',     genkstPhi       ,               'genkstPhi/D')
+#     gen_ntuple.Branch('genkstPhi',     genkstPhi       ,               'genkstPhi/D')
     gen_ntuple.Branch('genmumPhi',     genmumPhi       ,               'genmumPhi/D')
     gen_ntuple.Branch('genmupPhi',     genmupPhi       ,               'genmupPhi/D')
     gen_ntuple.Branch('genkstTrkmPhi', genkstTrkmPhi   ,               'genkstTrkmPhi/D')
     gen_ntuple.Branch('genkstTrkpPhi', genkstTrkpPhi   ,               'genkstTrkpPhi/D')
     gen_ntuple.Branch('genbEta',       genbEta         ,               'genbEta/D')
-    gen_ntuple.Branch('genkstEta',     genkstEta       ,               'genkstEta/D')
+#     gen_ntuple.Branch('genkstEta',     genkstEta       ,               'genkstEta/D')
     gen_ntuple.Branch('genmumEta',     genmumEta       ,               'genmumEta/D')
     gen_ntuple.Branch('genmupEta',     genmupEta       ,               'genmupEta/D')
     gen_ntuple.Branch('genkstTrkmEta', genkstTrkmEta   ,               'genkstTrkmEta/D')
@@ -770,12 +801,26 @@ if args.dogen:
     gen_ntuple.Branch('gen_cos_theta_k',        gen_cos_theta_k,                        'gen_cos_theta_k/D')
     gen_ntuple.Branch('gen_phi_kst_mumu',       gen_phi_kst_mumu,                       'gen_phi_kst_mumu/D')
 
+    gen_ntuple.Branch('weight', weight, 'weight/D')
+    if year==2016:
+      gen_ntuple.Branch('weightBF', weightBF, 'weightBF/D')
+      gen_ntuple.Branch('weightGH', weightGH, 'weightGH/D')
+
 
 
 numEvents = tree_lmnr.GetEntries()
 print 'total number of events in tree:', numEvents
 
+in_folder = '/gwpool/users/fiorendi/p5prime/miniAOD/CMSSW_10_2_14/src/miniB0KstarMuMu/miniKstarMuMu/test/flat_ntuples/pu_weights/'
 ROOT.gROOT.LoadMacro('FindValueFromVectorOfBool.h')
+fin = ROOT.TFile(in_folder+'weights_pu_%s_%s.root'%(type, year), 'read')
+weight_h = fin.Get('pileup')
+
+if year==2016:
+  finBF = ROOT.TFile(in_folder+'weights_pu_%s_%sBF.root'%(type, year), 'read')
+  weight_h_BF = finBF.Get('pileup')
+  finGH = ROOT.TFile(in_folder+'weights_pu_%s_%sGH.root'%(type, year), 'read')
+  weight_h_GH = finGH.Get('pileup')
 
 progressbarWidth = 40
 sys.stdout.write('Progress: [{}]'.format('-'*progressbarWidth))
@@ -872,10 +917,16 @@ for i, ev in enumerate(tree_lmnr):
         trueNumInteractionsMC[0]       = ev.trueNumInteractionsMC[index]
         break
 
+
+    weight[0] = weight_h.GetBinContent(weight_h.FindBin(trueNumInteractionsMC[0]))
+    if year==2016:
+      weightBF[0] = weight_h_BF.GetBinContent(weight_h_BF.FindBin(trueNumInteractionsMC[0]))
+      weightGH[0] = weight_h_GH.GetBinContent(weight_h_GH.FindBin(trueNumInteractionsMC[0]))
     bsX[0]                         = ev.bsX
     bsY[0]                         = ev.bsY
 
-    if args.dogen:  gen_ntuple.Fill()
+    if args.dogen:  
+      gen_ntuple.Fill()
 
     if not len(ev.bMass) > 0:
         continue
@@ -883,13 +934,13 @@ for i, ev in enumerate(tree_lmnr):
     if not any( path in ev.TrigTable[0] for path in paths):
         continue     
 
-    if isNot2016:  ## not there in 2016 ntuples
-        hlt_mums  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId == 13 ]
-        hlt_mups  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId ==-13 ]
-        hlt_trks  = [ihlt for ihlt in ev.hltObjs if abs(ihlt.pdgId) == 321]
-    
-        ## make all possible mumutk triplets from hlt
-        triplets = list(itertools.product(hlt_mums,hlt_mups,hlt_trks))
+#     if isNot2016:  ## not there in 2016 ntuples next four lines
+    hlt_mums  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId == 13 ]
+    hlt_mups  = [ihlt for ihlt in ev.hltObjs if ihlt.pdgId ==-13 ]
+    hlt_trks  = [ihlt for ihlt in ev.hltObjs if abs(ihlt.pdgId) == 321]
+
+    ## make all possible mumutk triplets from hlt
+    triplets = list(itertools.product(hlt_mums,hlt_mups,hlt_trks))
 
     ## now loop on candidates per event
     for icand in range(len(ev.bMass)):
@@ -901,17 +952,19 @@ for i, ev in enumerate(tree_lmnr):
     
         if isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
                                              ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
-                                             ev.mumdxyBS[icand] < 0.3            and ev.mupdxyBS[icand] < 0.3      and \
-                                             ev.mumdzBS[icand] < 20              and ev.mupdzBS[icand]  < 20       and \
+                                             abs(ev.mumdxyBS[icand]) < 0.3       and abs(ev.mupdxyBS[icand]) < 0.3 and \
+                                             abs(ev.mumdzBS[icand] ) < 20        and abs(ev.mupdzBS[icand])  < 20  and \
                                              ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
                                              ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
             continue
 
-        if not isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6  and \
-                                                 ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1  and \
-                                                 ev.mumdxyVtx[icand] < 0.3           and ev.mupdxyVtx[icand] < 0.3     and \
-                                                 ev.mumdzVtx[icand] < 20             and ev.mupdzVtx[icand]  < 20      and \
-                                                 ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1          and \
+        if not isNot2016 and skimSoftMu and not (ev.mumNTrkLayers[icand] >= 6        and ev.mupNTrkLayers[icand] >= 6   and \
+                                                 ev.mumNPixLayers[icand] >= 1        and ev.mupNPixLayers[icand] >= 1   and \
+                                                 abs(ev.mumdxyBS[icand]) < 0.3       and abs(ev.mupdxyBS[icand]) < 0.3 and \
+                                                 abs(ev.mumdzBS[icand] ) < 20        and abs(ev.mupdzBS[icand])  < 20  and \
+#                                                  abs(ev.mumdxyVtx[icand]) < 0.3      and abs(ev.mupdxyVtx[icand]) < 0.3 and \
+#                                                  abs(ev.mumdzVtx[icand]) < 20        and abs(ev.mupdzVtx[icand])  < 20  and \
+                                                 ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) == 1           and \
                                                  ROOT.FindValueFromVectorOfBool(ev.mupHighPurity, icand) == 1        ):
             continue
 
@@ -919,28 +972,35 @@ for i, ev in enumerate(tree_lmnr):
         ## trigger match: both muons should be matched + one track
         ## save the charge of the matched track to then apply pT cuts only to one of them
         charge_matched = 99
-        if isNot2016:    
-            charge_matched = findTriggerMatching(triplets,
-                                             ev.rawmumEta[icand],     ev.rawmumPhi[icand],     ev.rawmumPt[icand],
-                                             ev.rawmupEta[icand],     ev.rawmupPhi[icand],     ev.rawmupPt[icand],
-                                             ev.rawkstTrkmEta[icand], ev.rawkstTrkmPhi[icand], ev.rawkstTrkmPt[icand],
-                                             ev.rawkstTrkpEta[icand], ev.rawkstTrkpPhi[icand], ev.rawkstTrkpPt[icand]
-                                             ) 
-            if charge_matched == 0:
-                continue
+#         if isNot2016:    
+        charge_matched = findTriggerMatching(triplets,
+                                         ev.rawmumEta[icand],     ev.rawmumPhi[icand],     ev.rawmumPt[icand],
+                                         ev.rawmupEta[icand],     ev.rawmupPhi[icand],     ev.rawmupPt[icand],
+                                         ev.rawkstTrkmEta[icand], ev.rawkstTrkmPhi[icand], ev.rawkstTrkmPt[icand],
+                                         ev.rawkstTrkpEta[icand], ev.rawkstTrkpPhi[icand], ev.rawkstTrkpPt[icand]
+                                         ) 
+        if charge_matched == 0:
+            continue
    
 
-        trig[0]                        = paths.index(ev.TrigTable[0].split('_v')[0])
-        l1_00_1p5[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4')
-        l1_00_1p4[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
-        l1_4_4[0]                      = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
-        l1_4p5_4p5[0]                  = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu4p5_SQ_OS_dR_Max1p2')
+    
 
-#         l1_11_4[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_11_4')
-#         l1_12_5[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_12_5')
-#         l1_10_0[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_10_0_dEta_Max1p8')
-#         l1_00[0]                       = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p6_dEta_Max1p8')
-#         l1_00_OS[0]                    = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p6_dEta_Max1p8_OS')
+        ## per event quantities
+        runN[0]                        = ev.runN
+        recoVtxN[0]                    = ev.recoVtxN
+        trig[0]                        = paths.index(ev.TrigTable[0].split('_v')[0])
+        if isNot2016:    
+            l1_00_1p5[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4')
+            l1_00_1p4[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
+            l1_4_4[0]                      = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
+            l1_4p5_4p5[0]                  = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu4p5_SQ_OS_dR_Max1p2')
+
+        else:
+            l1_11_4[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_11_4')
+            l1_12_5[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_12_5')
+            l1_10_0[0]                     = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu_10_0_dEta_Max1p8')
+            l1_00[0]                       = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p6_dEta_Max1p8')
+            l1_00_OS[0]                    = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p6_dEta_Max1p8_OS')
 
         ## per-candidate quantities
         bPt[0]                         = computePt( ev.bPx      [icand], ev.bPy       [icand] ) 
@@ -1104,7 +1164,6 @@ for i, ev in enumerate(tree_lmnr):
 
         charge_trig_matched[0]  =  charge_matched    
 
-
         cos_theta_l[0], cos_theta_k[0], phi_kst_mumu[0] = addVars(
         	tagB0[0],
         	ev.mumuPx[icand],     ev.mumuPy[icand],    ev.mumuPz[icand], ev.mumuMass[icand],
@@ -1130,7 +1189,6 @@ for i, ev in enumerate(tree_lmnr):
         ###########  mu - isolation ####################
         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-        val_isoPt_dr05 = 0;     val_isoP_dr05  = 0;
         
         if len( ev.mumIsoPt[icand] ) > 0:
             for j,isoi in enumerate(ev.mumIsoPt[icand]):
@@ -1138,17 +1196,13 @@ for i, ev in enumerate(tree_lmnr):
                     val_isoPt_dr03 += isoi
                 if ev.mumIsodR[icand][j] < 0.4:
                     val_isoPt_dr04 += isoi
-                if ev.mumIsodR[icand][j] < 0.5:
-                    val_isoPt_dr05 += isoi
 
             mumIsoPt_dr03[0] = val_isoPt_dr03
             mumIsoPt_dr04[0] = val_isoPt_dr04
-            mumIsoPt_dr05[0] = val_isoPt_dr05
 
         ###########  mu + isolation ####################
         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-        val_isoPt_dr05 = 0;     val_isoP_dr05  = 0;
         
         if len( ev.mupIsoPt[icand] ) > 0:
             for j,isoi in enumerate(ev.mupIsoPt[icand]):
@@ -1156,18 +1210,14 @@ for i, ev in enumerate(tree_lmnr):
                     val_isoPt_dr03 += isoi
                 if ev.mupIsodR[icand][j] < 0.4:
                     val_isoPt_dr04 += isoi
-                if ev.mupIsodR[icand][j] < 0.5:
-                    val_isoPt_dr05 += isoi
 
             mupIsoPt_dr03[0] = val_isoPt_dr03
             mupIsoPt_dr04[0] = val_isoPt_dr04
-            mupIsoPt_dr05[0] = val_isoPt_dr05
 
  
         ###########  trk - isolation ####################
         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-        val_isoPt_dr05 = 0;     val_isoP_dr05  = 0;
         
         if len( ev.kstTrkmIsoPt[icand] ) > 0:
             for j,isoi in enumerate(ev.kstTrkmIsoPt[icand]):
@@ -1175,17 +1225,13 @@ for i, ev in enumerate(tree_lmnr):
                     val_isoPt_dr03 += isoi
                 if ev.kstTrkmIsodR[icand][j] < 0.4:
                     val_isoPt_dr04 += isoi
-                if ev.kstTrkmIsodR[icand][j] < 0.5:
-                    val_isoPt_dr05 += isoi
 
             kstTrkmIsoPt_dr03[0] = val_isoPt_dr03
             kstTrkmIsoPt_dr04[0] = val_isoPt_dr04
-            kstTrkmIsoPt_dr05[0] = val_isoPt_dr05
 
         ###########  trk + isolation ####################
         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-        val_isoPt_dr05 = 0;     val_isoP_dr05  = 0;
 
         if len( ev.kstTrkpIsoPt[icand] ) > 0:
             for j,isoi in enumerate(ev.kstTrkpIsoPt[icand]):
@@ -1193,12 +1239,9 @@ for i, ev in enumerate(tree_lmnr):
                     val_isoPt_dr03 += isoi
                 if ev.kstTrkpIsodR[icand][j] < 0.4:
                     val_isoPt_dr04 += isoi
-                if ev.kstTrkpIsodR[icand][j] < 0.5:
-                    val_isoPt_dr05 += isoi
 
             kstTrkpIsoPt_dr03[0] = val_isoPt_dr03
             kstTrkpIsoPt_dr04[0] = val_isoPt_dr04
-            kstTrkpIsoPt_dr05[0] = val_isoPt_dr05
 
 
         if not skim:
@@ -1288,10 +1331,20 @@ for i, ev in enumerate(tree_lmnr):
             else:
                 kstTrkpIso.push_back(0)        
 
-        truthMatchMum[0]               = ROOT.FindValueFromVectorOfBool(ev.truthMatchMum,  icand)
-        truthMatchMup[0]               = ROOT.FindValueFromVectorOfBool(ev.truthMatchMup,  icand)
-        truthMatchTrkm[0]              = ROOT.FindValueFromVectorOfBool(ev.truthMatchTrkm, icand)
-        truthMatchTrkp[0]              = ROOT.FindValueFromVectorOfBool(ev.truthMatchTrkp, icand)
+        ## rewrite gen-reco matching
+        dr_mup_genMup[0] = deltaR(mupEta[0], mupPhi[0], genmupEta[0], genmupPhi[0] )
+        dr_mum_genMum[0] = deltaR(mumEta[0], mumPhi[0], genmumEta[0], genmumPhi[0] )
+        dr_tkm_genTkm[0] = deltaR(kstTrkpEta[0], kstTrkpPhi[0], genkstTrkpEta[0], genkstTrkpPhi[0] )
+        dr_tkp_genTkp[0] = deltaR(kstTrkmEta[0], kstTrkmPhi[0], genkstTrkmEta[0], genkstTrkmPhi[0] )
+
+        truthMatchMum[0]               = (dr_mum_genMum[0] < 0.01)
+        truthMatchMup[0]               = (dr_mup_genMup[0] < 0.01)
+        truthMatchTrkm[0]              = (dr_tkm_genTkm[0] < 0.3)
+        truthMatchTrkp[0]              = (dr_tkp_genTkp[0] < 0.3)
+#         truthMatchMum[0]               = ROOT.FindValueFromVectorOfBool(ev.truthMatchMum,  icand)
+#         truthMatchMup[0]               = ROOT.FindValueFromVectorOfBool(ev.truthMatchMup,  icand)
+#         truthMatchTrkm[0]              = ROOT.FindValueFromVectorOfBool(ev.truthMatchTrkm, icand)
+#         truthMatchTrkp[0]              = ROOT.FindValueFromVectorOfBool(ev.truthMatchTrkp, icand)
         mumDeltaRwithMC[0]             = ev.mumDeltaRwithMC[icand]
         mupDeltaRwithMC[0]             = ev.mupDeltaRwithMC[icand]
         kstTrkpDeltaRwithMC[0]         = ev.kstTrkpDeltaRwithMC[icand]
