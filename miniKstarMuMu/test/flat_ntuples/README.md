@@ -8,7 +8,7 @@ The location of the input ntuples is collected in
 The two scripts performing the skimming/flattening are 
 [flatNtuples_batch.py](https://github.com/CMSKStarMuMu/miniB0KstarMuMu/blob/master/miniKstarMuMu/test/flat_ntuples/flatNtuples_batch.py) and [flatNtuplesMC_batch.py](https://github.com/CMSKStarMuMu/miniB0KstarMuMu/blob/master/miniKstarMuMu/test/flat_ntuples/flatNtuplesMC_batch.py), 
 and they can be submitted to the queue system (using condor) via the 
-[submit_flat.py](https://github.com/CMSKStarMuMu/miniB0KstarMuMu/blob/master/miniKstarMuMu/test/flat_ntuples/submit_condor.py) script.
+[submit_condor.py](https://github.com/CMSKStarMuMu/miniB0KstarMuMu/blob/master/miniKstarMuMu/test/flat_ntuples/submit_condor.py) script.
 
 ```
 python submit_condor.py --help
