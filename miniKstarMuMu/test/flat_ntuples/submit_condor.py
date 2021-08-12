@@ -39,6 +39,7 @@ base_out = '%s/%s/%s' %(args.outdir, isMC*'mc' + (1-isMC)*'', args.addtag)
 os.makedirs('%s/scripts'%base_out)
 os.makedirs('%s/outCondor'%base_out)
 os.system('cp FindValueFromVectorOfBool.h {base_out}'.format(base_out=base_out))
+# os.system('cp weights_pu_*.root {base_out}'.format(base_out=base_out))
 
 ##  output folder for root files
 full_eos_out = '{eos_out_folder}/{base_out}/'.format(eos_out_folder = os.getcwd(), base_out = base_out)
@@ -46,19 +47,20 @@ full_eos_out = '{eos_out_folder}/{base_out}/'.format(eos_out_folder = os.getcwd(
 
 ## calculate n jobs to be submitted 
 import fnmatch
+# import pdb; pdb.set_trace()
 njobs = int(args.njobs   )
 if args.njobs == -1:
-#     set_trace()
     flist = glob(samples[args.samples[0]]['path']+'/000*/*.root')
     njobs = len(flist)    
-#     else:
+# else:
 #         njobs = len(fnmatch.filter(os.listdir(samples['MC_'+args.channel]['path']), '*.root'))    
-    
+
 ## find missing files from crab
 job_n = []
 for i,f in enumerate(flist):  job_n.append(int(f.split('_')[-1].split('.')[-2]))    
 job_n.sort()    
 
+# pdb.set_trace()
 missing =  sorted(set(range(job_n[0], job_n[-1])) - set(job_n)) 
 print 'missing files from crab:', missing
 njobs = njobs + len(missing) + 1 ## adding 1 since condor start from 0 and crab_0.root does not exists
@@ -72,13 +74,15 @@ bname = os.path.realpath('%s/scripts/script_flat.sh'%base_out)
 with open(bname, 'w') as batch:
     batch.write('''#!/bin/tcsh
 setenv CMSSWDIR /gwpool/users/fiorendi/p5prime/miniAOD/CMSSW_10_2_14/src
+setenv KRB5CCNAME /gwpool/users/fiorendi/krb5cc_`id -u fiorendi`
 cd $CMSSWDIR
 source  /cvmfs/cms.cern.ch/cmsset_default.csh
 eval `scram runtime -csh`
+eosfusebind
 cd -
 echo "python {script_loc} {thesample} -n $1 -f $2 -c $3 {gen_flag}"
 time python {script_loc}  {thesample} -n $1 -f $2 -c $3 {gen_flag}
-mv *.root {full_eos_out} 
+mv reco*.root gen*.root {full_eos_out} 
 '''
 .format(script_loc   = script_loc, 
         thesample    = args.samples[0],
@@ -113,10 +117,11 @@ Queue {njobs}
                      chan = channel, 
                      njobs = njobs )
 )    
-    # submit to the queue
-    print('condor_submit {base_out}/condor_sub.cfg'.format(base_out=base_out))
-    if not args.test:
-        os.system("condor_submit {base_out}/condor_sub.cfg".format(base_out=base_out))   
+
+# submit to the queue
+print('condor_submit {base_out}/condor_sub.cfg'.format(base_out=base_out))
+if not args.test:
+    os.system("condor_submit {base_out}/condor_sub.cfg".format(base_out=base_out))   
 
 
 # +JobFlavour = "{flavour}"
