@@ -128,11 +128,20 @@ def addGenVars(genSignal,
   MuMuPlane = mup_lv_boosted.Vect().Cross(mum_lv_boosted.Vect())
   KstPlane  = tkp_lv_boosted.Vect().Cross(tkm_lv_boosted.Vect())
 
+  kst_lv_boosted = dc(kst_lv)
+  kst_lv_boosted.Boost(-boostB0)
   phiKstMuMuPlane = -99
-  if MuMuPlane.Cross(KstPlane).Dot(-b0_lv.Vect()) > 0:
-    phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
-  else:
-    phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+
+  if tagB0==1:
+    if MuMuPlane.Cross(KstPlane).Dot(kst_lv_boosted.Vect()) > 0:
+      phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
+    else:
+      phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+  elif tagB0==0:
+    if MuMuPlane.Cross(KstPlane).Dot(kst_lv_boosted.Vect()) > 0:
+      phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+    else:
+      phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
 
   return cos_theta_l, cos_theta_k, phiKstMuMuPlane#, mumu_lv.M()
   
@@ -231,11 +240,19 @@ def addVars(tagB0,
   MuMuPlane = mup_lv_boosted.Vect().Cross(mum_lv_boosted.Vect())
   KstPlane  = tkp_lv_boosted.Vect().Cross(tkm_lv_boosted.Vect())
 
+  kst_lv_boosted = dc(kst_lv)
+  kst_lv_boosted.Boost(-boostB0)
   phiKstMuMuPlane = -99
-  if MuMuPlane.Cross(KstPlane).Dot(-b0_lv.Vect()) > 0:
-    phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
-  else:
-    phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+  if tagB0==1:
+    if MuMuPlane.Cross(KstPlane).Dot(kst_lv_boosted.Vect()) > 0:
+      phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
+    else:
+      phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+  elif tagB0==0:
+    if MuMuPlane.Cross(KstPlane).Dot(kst_lv_boosted.Vect()) > 0:
+      phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+    else:
+      phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
 
   return cos_theta_l, cos_theta_k, phiKstMuMuPlane
 
