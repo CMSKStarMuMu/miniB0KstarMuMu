@@ -68,6 +68,9 @@ class miniKstarMuMu : public edm::EDAnalyzer {
       bool         isAncestor(const reco::Candidate*, const reco::Candidate * );
       bool         skipOscillations (const reco::GenParticle &, edm::Handle<reco::GenParticleCollection>);
 
+      reco::Track fix_track(const reco::TrackRef& );
+      reco::Track fix_track(const reco::Track*, double );
+
       // ----------member data ---------------------------
       edm::EDGetTokenT<reco::VertexCollection>         vtxToken_;
       edm::EDGetTokenT<pat::MuonCollection>            muonToken_;
@@ -77,6 +80,7 @@ class miniKstarMuMu : public edm::EDAnalyzer {
       edm::EDGetTokenT<edm::TriggerResults>                    triggerBits_;
       edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
       edm::EDGetTokenT<pat::PackedTriggerPrescales>            triggerPrescales_;
+      std::vector<std::string> reftrigTable_;
       std::vector<std::string> trigTable_;
       std::vector<std::string> l1Table_;
 

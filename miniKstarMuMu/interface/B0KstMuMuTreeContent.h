@@ -113,7 +113,7 @@ class B0KstMuMuTreeContent
   std::vector<double>       *mumdxyBS, *mumdzBS, *mumMinIP2D, *mumMinIP2DE, *mumMinIP, *mumMinIPS;
   std::vector<double>       *mumDeltaRwithMC;
   std::vector<std::string>  *mumCat;
-  std::vector<int>          *mumNPixHits, *mumNPixLayers, *mumNTrkHits, *mumNTrkLayers, *mumNMuonHits, *mumNMatchStation;
+  std::vector<int>          *mumNPixHits, *mumNPixLayers, *mumNTrkHits, *mumNTrkLayers, *mumNMuonHits, *mumNMatchStation, *mumIsMedium;
   std::vector<std::vector<float>> *mumIso, *mumIsoPt, *mumIsodR;
 
   // #######
@@ -127,7 +127,7 @@ class B0KstMuMuTreeContent
   std::vector<double>       *mupdxyBS, *mupdzBS, *mupMinIP2D, *mupMinIP2DE, *mupMinIP, *mupMinIPS;
   std::vector<double>       *mupDeltaRwithMC;
   std::vector<std::string>  *mupCat;
-  std::vector<int>          *mupNPixHits, *mupNPixLayers, *mupNTrkHits, *mupNTrkLayers, *mupNMuonHits, *mupNMatchStation;
+  std::vector<int>          *mupNPixHits, *mupNPixLayers, *mupNTrkHits, *mupNTrkLayers, *mupNMuonHits, *mupNMatchStation, *mupIsMedium;
   std::vector<std::vector<float>> *mupIso, *mupIsoPt, *mupIsodR;
 
   // ##############
@@ -141,7 +141,7 @@ class B0KstMuMuTreeContent
   std::vector<double>       *kstTrkmDCAVtx, *kstTrkmDCAVtxE, *kstTrkmDCABS, *kstTrkmDCABSE, *kstTrkmFracHits;
   std::vector<double>       *kstTrkmdxyVtx, *kstTrkmdzVtx, *kstTrkmMinIP2D, *kstTrkmMinIP2DE, *kstTrkmMinIP, *kstTrkmMinIPS;
   std::vector<double>       *kstTrkmDeltaRwithMC;
-  std::vector<int>          *kstTrkmNPixHits, *kstTrkmNPixLayers, *kstTrkmNTrkHits, *kstTrkmNTrkLayers;
+  std::vector<int>          *kstTrkmNPixHits, *kstTrkmNPixLayers, *kstTrkmNTrkHits, *kstTrkmNTrkLayers, *kstTrkmHitInPixLayer1, *kstTrkmHitInPixLayer2, *kstTrkmHitInPixLayer3, *kstTrkmHitInPixLayer4;
   std::vector<std::string>  *kstTrkmMuMatch;
   std::vector<std::vector<float>> *kstTrkmIso, *kstTrkmIsoPt, *kstTrkmIsodR;
 
@@ -156,7 +156,7 @@ class B0KstMuMuTreeContent
   std::vector<double>       *kstTrkpDCAVtx, *kstTrkpDCAVtxE, *kstTrkpDCABS, *kstTrkpDCABSE, *kstTrkpFracHits;
   std::vector<double>       *kstTrkpdxyVtx, *kstTrkpdzVtx, *kstTrkpMinIP2D, *kstTrkpMinIP2DE, *kstTrkpMinIP, *kstTrkpMinIPS;
   std::vector<double>       *kstTrkpDeltaRwithMC;
-  std::vector<int>          *kstTrkpNPixHits, *kstTrkpNPixLayers, *kstTrkpNTrkHits, *kstTrkpNTrkLayers;
+  std::vector<int>          *kstTrkpNPixHits, *kstTrkpNPixLayers, *kstTrkpNTrkHits, *kstTrkpNTrkLayers, *kstTrkpHitInPixLayer1, *kstTrkpHitInPixLayer2, *kstTrkpHitInPixLayer3, *kstTrkpHitInPixLayer4;
   std::vector<std::string>  *kstTrkpMuMatch;
   std::vector<std::vector<float>> *kstTrkpIso, *kstTrkpIsoPt, *kstTrkpIsodR;
 

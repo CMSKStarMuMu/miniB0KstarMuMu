@@ -15,10 +15,10 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
-process.load('Configuration.Geometry.GeometryIdeal_cff')
+process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string('102X_dataRun2_v13') ## for data
+process.GlobalTag.globaltag = cms.string('102X_dataRun2_v14') ## for data
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
@@ -71,12 +71,10 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
                                 "HLT_DoubleMu4_JpsiTrk_Displaced_v",
                                 "HLT_DoubleMu4_PsiPrimeTrk_Displaced_v"
                     ),
-    L1Names  = cms.vstring("L1_DoubleMu_11_4", 
-                           "L1_DoubleMu_12_5",
-                           "L1_DoubleMu_10_0_dEta_Max1p8",
-                           "L1_DoubleMu0er1p6_dEta_Max1p8", 
-                           "L1_DoubleMu0er1p6_dEta_Max1p8_OS",
-                           "L1_DoubleMu0er1p4_dEta_Max1p8_OS",
+    L1Names  = cms.vstring("L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4", 
+                           "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4",
+                           "L1_DoubleMu4_SQ_OS_dR_Max1p2", 
+                           "L1_DoubleMu4p5_SQ_OS_dR_Max1p2",
                     ),
 
     packed = cms.InputTag("packedGenParticles"),

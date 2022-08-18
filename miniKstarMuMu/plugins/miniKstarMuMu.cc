@@ -56,6 +56,9 @@
 #include "miniB0KstarMuMu/miniKstarMuMu/src/B0Isolation.cc"
 #include "miniB0KstarMuMu/miniKstarMuMu/src/B0ImpactPars.cc"
 
+#include "TMatrixDSym.h"
+#include "TVectorD.h"
+
 #define TRKMAXR 110.0 // [cm]
 #define TRKMAXZ 280.0 // [cm]
 
@@ -78,13 +81,13 @@ float   mumasserr = 3.5e-9;
 miniKstarMuMu::miniKstarMuMu(const edm::ParameterSet& iConfig):
     vtxToken_       (consumes<reco::VertexCollection>            (iConfig.getParameter<edm::InputTag>("vertices"))),
     muonToken_      (consumes<pat::MuonCollection>               (iConfig.getParameter<edm::InputTag>("muons"))),
-    trackToken_     (consumes<reco::TrackCollection>             (iConfig.getParameter<edm::InputTag>("tracks"))),
-//     trackToken_     (consumes<pat::PackedCandidateCollection>    (iConfig.getParameter<edm::InputTag>("tracks"))),
+    trackToken_     (consumes<reco::TrackCollection>             (iConfig.getParameter<edm::InputTag>("tracks"))), 
     beamSpotToken_  (consumes<reco::BeamSpot>                    (iConfig.getParameter<edm::InputTag>("beamSpot"))),
 
     triggerBits_      (consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("bits"))),
     triggerObjects_   (consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("objects"))),
     triggerPrescales_ (consumes<pat::PackedTriggerPrescales>            (iConfig.getParameter<edm::InputTag>("prescales"))),
+//     reftrigTable_      ( iConfig.getParameter<std::vector<std::string> >("ReferenceTriggerNames")),   
     trigTable_         ( iConfig.getParameter<std::vector<std::string> >("TriggerNames")),   
     l1Table_           ( iConfig.getParameter<std::vector<std::string> >("L1Names")),   
 
@@ -192,6 +195,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     AdaptiveVertexFitter theVtxFitter;                              // Vertex fitter in nominal reconstruction
     KinematicParticleVertexFitter PartVtxFitter;                    // Vertex fit with vtx constraint
   
+  
     edm::Handle<edm::TriggerResults>                    triggerBits;
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
     edm::Handle<pat::PackedTriggerPrescales>            triggerPrescales;
@@ -200,8 +204,28 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByToken(triggerObjects_,   triggerObjects);
     iEvent.getByToken(triggerPrescales_, triggerPrescales);
 
-    bool foundOneTrig = false;
+    edm::Handle<edm::TriggerResults>                    triggerBits;
+    edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
+    edm::Handle<pat::PackedTriggerPrescales>            triggerPrescales;
+
+    iEvent.getByToken(triggerBits_,      triggerBits);
+    iEvent.getByToken(triggerObjects_,   triggerObjects);
+    iEvent.getByToken(triggerPrescales_, triggerPrescales);
+
+    bool foundOneRefTrig = false;
     const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+    // pass at least one prescaled trigger
+//     for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
+//         for (unsigned int it = 0; it < reftrigTable_.size(); it++){
+//             if (names.triggerName(i).find(reftrigTable_[it]) != std::string::npos && triggerBits->accept(i))
+//             {
+//                 foundOneRefTrig = true;
+//             }
+//         }
+//     }
+//     if ( iEvent.isRealData() && !foundOneRefTrig) return;
+
+    bool foundOneTrig = false;
     for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
         for (unsigned int it = 0; it < trigTable_.size(); it++){
             if (names.triggerName(i).find(trigTable_[it]) != std::string::npos && triggerBits->accept(i))
@@ -247,7 +271,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
       }
 	}  
 
-    // save HLT objects
+    // save HLT objects 
     for (pat::TriggerObjectStandAlone obj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
         obj.unpackPathNames(names);
         obj.unpackFilterLabels(iEvent,*triggerBits);
@@ -461,19 +485,23 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 //             reco::Vertex mumu_rv =  reco::Vertex( mumu_GP, mumu_error, mumu_chi2, mumu_ndof, 2 );
 
 
-            for (uint itrkm =0 ;  itrkm < tracks->size(); itrkm++){
+            for (uint itrkm = 0 ;  itrkm < tracks->size(); itrkm++){
+            // for same sign
+//             for (uint itrkm =0 ;  itrkm < tracks->size()-1; itrkm++){
 
                 reco::TrackRef tkm(tracks,itrkm) ;  
-   			    if ( tkm.isNull() == true) continue;
-//                 if (! tkm->quality(reco::TrackBase::highPurity))     continue;
+                if ( tkm.isNull() == true) continue;
+                if (! tkm->quality(reco::TrackBase::highPurity))     continue;
 
                 if ( tkm->charge() != -1 )                           continue;
 
                 if ( tkm->pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
                 if (fabs(tkm->eta()) > MUMAXETA)                     continue;
 
-                const reco::TransientTrack TrackmTT((*tkm), &(*bFieldHandle));
+
+                const reco::TransientTrack TrackmTT(fix_track(tkm), &(*bFieldHandle));
                 if (!TrackmTT.isValid()) continue;
+                
 
                 // ######################################
                 // # Compute K*0 track- DCA to BeamSpot #
@@ -497,19 +525,22 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 
                 for (uint itrkp =0 ;  itrkp < tracks->size(); itrkp++){
-                    
+                /// same sign!!
+//                 for (uint itrkp =itrkm+1 ;  itrkp < tracks->size(); itrkp++){
+
                     reco::TrackRef tkp(tracks,itrkp) ;                                                
                     if ( tkp.isNull() == true)                           continue;
-//                     if (! tkp->quality(reco::TrackBase::highPurity))     continue;
+                    if (! tkp->quality(reco::TrackBase::highPurity))     continue;
 
                     if ( tkp->charge() != +1 )                           continue;
 
-                    // same sign!! 
+                    // same sign!!  check also loop definition
 //                     if ( (tkp->charge()) * (tkm->charge()) != 1 )                 continue;
 
                     if ( tkp->pt() < (MINHADPT*(1.0-HADVARTOLE)))        continue;
                     if ( fabs(tkp->eta()) > MUMAXETA)                    continue;
-                    const reco::TransientTrack TrackpTT((*tkp), &(*bFieldHandle));
+
+                    const reco::TransientTrack TrackpTT(fix_track(tkp), &(*bFieldHandle));
                     if (!TrackpTT.isValid()) continue;
                     
                     // ######################################
@@ -668,7 +699,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     tot_lv = a_lv + b_lv + c_lv + d_lv;
                     if  (tot_lv.M() > MAXB0PREMASS) {
                       if (printMsg) std::cout << __LINE__ << " : continue --> b0 mass before fit is > max value" << std::endl;
-                        continue;    
+                        continue;
                     }         
   
   
@@ -1063,7 +1094,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     if (mum.isGlobalMuon() == true) NTuple->mumNMuonHits->push_back(mum.globalTrack()->hitPattern().numberOfValidMuonHits());
                     else NTuple->mumNMuonHits->push_back(0);
                     NTuple->mumNMatchStation->push_back(mum.numberOfMatchedStations());
-      
+                    NTuple->mumIsMedium->push_back(muon::isMediumMuon(mum));
       
                     //// #############
                     //// # Save: mu+ #
@@ -1098,6 +1129,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     if (mup.isGlobalMuon() == true) NTuple->mupNMuonHits->push_back(mup.globalTrack()->hitPattern().numberOfValidMuonHits());
                     else NTuple->mupNMuonHits->push_back(0);
                     NTuple->mupNMatchStation->push_back(mup.numberOfMatchedStations());
+                    NTuple->mupIsMedium->push_back(muon::isMediumMuon(mup));
       
       
                     //// ################
@@ -1132,6 +1164,10 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     NTuple->kstTrkmNPixLayers->push_back(tkm->hitPattern().pixelLayersWithMeasurement());  
                     NTuple->kstTrkmNTrkHits  ->push_back(tkm->hitPattern().numberOfValidTrackerHits());
                     NTuple->kstTrkmNTrkLayers->push_back(tkm->hitPattern().trackerLayersWithMeasurement());
+                    NTuple->kstTrkmHitInPixLayer1->push_back( tkm->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) );
+                    NTuple->kstTrkmHitInPixLayer2->push_back( tkm->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 2) );
+                    NTuple->kstTrkmHitInPixLayer3->push_back( tkm->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 3) );
+                    NTuple->kstTrkmHitInPixLayer4->push_back( tkm->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 4) );
       
       
                     // ################
@@ -1163,6 +1199,12 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     NTuple->kstTrkpNPixLayers->push_back(tkp->hitPattern().pixelLayersWithMeasurement());  
                     NTuple->kstTrkpNTrkHits  ->push_back(tkp->hitPattern().numberOfValidTrackerHits());
                     NTuple->kstTrkpNTrkLayers->push_back(tkp->hitPattern().trackerLayersWithMeasurement());
+                    
+                    NTuple->kstTrkpHitInPixLayer1->push_back( tkp->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 1) );
+                    NTuple->kstTrkpHitInPixLayer2->push_back( tkp->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 2) );
+                    NTuple->kstTrkpHitInPixLayer3->push_back( tkp->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 3) );
+                    NTuple->kstTrkpHitInPixLayer4->push_back( tkp->hitPattern().hasValidHitInPixelLayer(PixelSubdetector::SubDetector::PixelBarrel, 4) );
+                    
 
                     NTuple->bPlusCosAlphaBS  ->push_back(bPcosAlphaBS);
                     NTuple->bPlusVtxCL       ->push_back(bPlusVtxCL);
@@ -1561,6 +1603,78 @@ std::string miniKstarMuMu::getMuCat (pat::Muon const& muon)
   if ((muon.isGlobalMuon() == false) && (muon.isTrackerMuon() == false) && (muon.isStandAloneMuon() == false) && (muon.isCaloMuon() == false)) muCat << " NotInTable";
 
   return muCat.str();
+}
+
+
+
+
+reco::Track miniKstarMuMu::fix_track(const reco::TrackRef& tk)
+{
+    reco::Track t = reco::Track(*tk);
+    return fix_track(&t, 1e-8);
+}
+
+
+reco::Track miniKstarMuMu::fix_track(const reco::Track *tk, double delta)
+{
+    unsigned int i, j;
+    double min_eig = 1;
+
+    /* Get the original covariance matrix. */
+    reco::TrackBase::CovarianceMatrix cov = tk->covariance();
+
+    /* Convert it from an SMatrix to a TMatrixD so we can get the eigenvalues. */
+    TMatrixDSym new_cov(cov.kRows);
+    for (i = 0; i < cov.kRows; i++) {
+        for (j = 0; j < cov.kRows; j++) {
+            /* Need to check for nan or inf, because for some reason these
+             * cause a segfault when calling Eigenvectors().
+             *
+             * No idea what to do here or why this happens. */
+            if (std::isnan(cov(i,j)) || std::isinf(cov(i,j)))
+                cov(i,j) = 1e-6;
+            new_cov(i,j) = cov(i,j);
+        }
+    }
+
+    /* Get the eigenvalues. */
+    TVectorD eig(cov.kRows);
+    new_cov.EigenVectors(eig);
+    for (i = 0; i < cov.kRows; i++)
+        if (eig(i) < min_eig)
+            min_eig = eig(i);
+
+    /* If the minimum eigenvalue is less than zero, then subtract it from the
+     * diagonal and add `delta`. */
+    if (min_eig < 0) {
+        for (i = 0; i < cov.kRows; i++)
+            cov(i,i) -= min_eig - delta;
+    }
+
+
+   ////to check that it is working
+//     double min_eig2 = 1;
+//     TMatrixDSym newsara_cov(cov.kRows);
+//     for (i = 0; i < cov.kRows; i++) {
+//         for (j = 0; j < cov.kRows; j++) {
+//             if (std::isnan(cov(i,j)) || std::isinf(cov(i,j)))
+//                 cov(i,j) = 1e-6;
+//             newsara_cov(i,j) = cov(i,j);
+//         }
+//     }
+// 
+//     /* Get the eigenvalues. */
+//     TVectorD eig2(cov.kRows);
+//     newsara_cov.EigenVectors(eig2);
+//     for (i = 0; i < cov.kRows; i++)
+//         if (eig2(i) < min_eig2)
+//             min_eig2 = eig2(i);
+// 
+//     if (min_eig2 < 0) {
+//         std::cout << "after correction  " << min_eig2 << std::endl; 
+//     }
+
+    return reco::Track(tk->chi2(), tk->ndof(), tk->referencePoint(), tk->momentum(), tk->charge(), cov, tk->algo(), (reco::TrackBase::TrackQuality) tk->qualityMask());
 }
 
 

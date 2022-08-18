@@ -108,6 +108,7 @@ B0KstMuMuTreeContent::B0KstMuMuTreeContent ()
   mumIso           = nullptr;
   mumIsoPt         = nullptr;
   mumIsodR         = nullptr;
+  mumIsMedium      = nullptr;
 
   // ### mu+ ###
   mupHighPurity    = nullptr;
@@ -139,6 +140,7 @@ B0KstMuMuTreeContent::B0KstMuMuTreeContent ()
   mupIso           = nullptr;
   mupIsoPt         = nullptr;
   mupIsodR         = nullptr;
+  mupIsMedium      = nullptr;
 
   // ### K*0 track- ###
   kstTrkmHighPurity   = nullptr;
@@ -169,6 +171,10 @@ B0KstMuMuTreeContent::B0KstMuMuTreeContent ()
   kstTrkmNPixLayers   = nullptr;
   kstTrkmNTrkHits     = nullptr;
   kstTrkmNTrkLayers   = nullptr;
+  kstTrkmHitInPixLayer1=  nullptr;
+  kstTrkmHitInPixLayer2=  nullptr;
+  kstTrkmHitInPixLayer3=  nullptr;
+  kstTrkmHitInPixLayer4=  nullptr;
   kstTrkmMuMatch      = nullptr;
   kstTrkmIso          = nullptr;
   kstTrkmIsoPt        = nullptr;
@@ -203,6 +209,12 @@ B0KstMuMuTreeContent::B0KstMuMuTreeContent ()
   kstTrkpNPixLayers   = nullptr;
   kstTrkpNTrkHits     = nullptr;
   kstTrkpNTrkLayers   = nullptr;
+  kstTrkpHitInPixLayer1=  nullptr;
+  kstTrkpHitInPixLayer2=  nullptr;
+  kstTrkpHitInPixLayer3=  nullptr;
+  kstTrkpHitInPixLayer4=  nullptr;
+
+  
   kstTrkpMuMatch      = nullptr;
   kstTrkpIso          = nullptr;
   kstTrkpIsoPt        = nullptr;
@@ -343,6 +355,7 @@ void B0KstMuMuTreeContent::Init ()
   mumIso           = new std::vector<std::vector<float> >;
   mumIsoPt         = new std::vector<std::vector<float> >;
   mumIsodR         = new std::vector<std::vector<float> >;
+  mumIsMedium      = new std::vector<int>;
 
   // ### mu+ ###
 //   mupHighPurity    = new std::vector<int>;
@@ -375,6 +388,7 @@ void B0KstMuMuTreeContent::Init ()
   mupIso           = new std::vector<std::vector<float> >;
   mupIsoPt         = new std::vector<std::vector<float> >;
   mupIsodR         = new std::vector<std::vector<float> >;
+  mupIsMedium      = new std::vector<int>;
 
   // ### K*0 track- ###
 //   kstTrkmHighPurity   = new std::vector<int>;
@@ -406,6 +420,10 @@ void B0KstMuMuTreeContent::Init ()
   kstTrkmNPixLayers   = new std::vector<int>;
   kstTrkmNTrkHits     = new std::vector<int>;
   kstTrkmNTrkLayers   = new std::vector<int>;
+  kstTrkmHitInPixLayer1= new std::vector<int>;
+  kstTrkmHitInPixLayer2= new std::vector<int>;
+  kstTrkmHitInPixLayer3= new std::vector<int>;
+  kstTrkmHitInPixLayer4= new std::vector<int>;
   kstTrkmMuMatch      = new std::vector<std::string>;
   kstTrkmIso          = new std::vector<std::vector<float> >;
   kstTrkmIsoPt        = new std::vector<std::vector<float> >;
@@ -441,6 +459,13 @@ void B0KstMuMuTreeContent::Init ()
   kstTrkpNPixLayers   = new std::vector<int>;
   kstTrkpNTrkHits     = new std::vector<int>;
   kstTrkpNTrkLayers   = new std::vector<int>;
+  kstTrkpHitInPixLayer1= new std::vector<int>;
+  kstTrkpHitInPixLayer2= new std::vector<int>;
+  kstTrkpHitInPixLayer3= new std::vector<int>;
+  kstTrkpHitInPixLayer4= new std::vector<int>;
+  
+  
+  
   kstTrkpMuMatch      = new std::vector<std::string>;
   kstTrkpIso          = new std::vector<std::vector<float> >;
   kstTrkpIsoPt        = new std::vector<std::vector<float> >;
@@ -582,6 +607,7 @@ B0KstMuMuTreeContent::~B0KstMuMuTreeContent ()
   delete mumIso;
   delete mumIsoPt;
   delete mumIsodR;
+  delete mumIsMedium;
 
   // ### mu+ ###
   delete mupHighPurity;
@@ -613,6 +639,7 @@ B0KstMuMuTreeContent::~B0KstMuMuTreeContent ()
   delete mupIso;
   delete mupIsoPt;
   delete mupIsodR;
+  delete mupIsMedium;
       
   // ### K*0 track- ###
   delete kstTrkmHighPurity;
@@ -643,6 +670,10 @@ B0KstMuMuTreeContent::~B0KstMuMuTreeContent ()
   delete kstTrkmNPixLayers;
   delete kstTrkmNTrkHits;
   delete kstTrkmNTrkLayers;
+  delete kstTrkmHitInPixLayer1;
+  delete kstTrkmHitInPixLayer2;
+  delete kstTrkmHitInPixLayer3;
+  delete kstTrkmHitInPixLayer4;
   delete kstTrkmMuMatch;
   delete kstTrkmIso;
   delete kstTrkmIsoPt;
@@ -677,6 +708,10 @@ B0KstMuMuTreeContent::~B0KstMuMuTreeContent ()
   delete kstTrkpNPixLayers;
   delete kstTrkpNTrkHits;
   delete kstTrkpNTrkLayers;
+  delete kstTrkpHitInPixLayer1;
+  delete kstTrkpHitInPixLayer2;
+  delete kstTrkpHitInPixLayer3;
+  delete kstTrkpHitInPixLayer4;
   delete kstTrkpMuMatch;
   delete kstTrkpIso;
   delete kstTrkpIsoPt;
@@ -908,6 +943,7 @@ void B0KstMuMuTreeContent::ClearVectors ()
   mumIso->clear();
   mumIsoPt->clear();
   mumIsodR->clear();
+  mumIsMedium->clear();
 
   // ### mu+ ###
   mupHighPurity->clear();
@@ -939,6 +975,7 @@ void B0KstMuMuTreeContent::ClearVectors ()
   mupIso->clear();
   mupIsoPt->clear();
   mupIsodR->clear();
+  mupIsMedium->clear();
 
   // ### K*0 track- ###
   kstTrkmHighPurity->clear();
@@ -969,6 +1006,10 @@ void B0KstMuMuTreeContent::ClearVectors ()
   kstTrkmNPixLayers->clear();
   kstTrkmNTrkHits->clear();
   kstTrkmNTrkLayers->clear();
+  kstTrkmHitInPixLayer1->clear();
+  kstTrkmHitInPixLayer2->clear();
+  kstTrkmHitInPixLayer3->clear();
+  kstTrkmHitInPixLayer4->clear();
   kstTrkmMuMatch->clear();
   kstTrkmIso->clear();
   kstTrkmIsoPt->clear();
@@ -1003,6 +1044,10 @@ void B0KstMuMuTreeContent::ClearVectors ()
   kstTrkpNPixLayers->clear();
   kstTrkpNTrkHits->clear();
   kstTrkpNTrkLayers->clear();
+  kstTrkpHitInPixLayer1->clear();
+  kstTrkpHitInPixLayer2->clear();
+  kstTrkpHitInPixLayer3->clear();
+  kstTrkpHitInPixLayer4->clear();
   kstTrkpMuMatch->clear();
   kstTrkpIso->clear();
   kstTrkpIsoPt->clear();
@@ -1176,6 +1221,7 @@ void B0KstMuMuTreeContent::MakeTreeBranches (TTree* theTree)
   theTree->Branch("mumIso",           &mumIso);
   theTree->Branch("mumIsoPt",         &mumIsoPt);
   theTree->Branch("mumIsodR",         &mumIsodR);
+  theTree->Branch("mumIsMedium",      &mumIsMedium);
 
   // ### mu+ ###  
   theTree->Branch("mupHighPurity",    &mupHighPurity);
@@ -1207,6 +1253,7 @@ void B0KstMuMuTreeContent::MakeTreeBranches (TTree* theTree)
   theTree->Branch("mupIso",           &mupIso);
   theTree->Branch("mupIsoPt",         &mupIsoPt);
   theTree->Branch("mupIsodR",         &mupIsodR);
+  theTree->Branch("mupIsMedium",      &mupIsMedium);
 
   // ### K*0 track- ###
   theTree->Branch("kstTrkmHighPurity",   &kstTrkmHighPurity);
@@ -1237,6 +1284,10 @@ void B0KstMuMuTreeContent::MakeTreeBranches (TTree* theTree)
   theTree->Branch("kstTrkmNPixLayers",   &kstTrkmNPixLayers);
   theTree->Branch("kstTrkmNTrkHits",     &kstTrkmNTrkHits);
   theTree->Branch("kstTrkmNTrkLayers",   &kstTrkmNTrkLayers);
+  theTree->Branch("kstTrkmHitInPixLayer1",   &kstTrkmHitInPixLayer1);
+  theTree->Branch("kstTrkmHitInPixLayer2",   &kstTrkmHitInPixLayer2);
+  theTree->Branch("kstTrkmHitInPixLayer3",   &kstTrkmHitInPixLayer3);
+  theTree->Branch("kstTrkmHitInPixLayer4",   &kstTrkmHitInPixLayer4);
   theTree->Branch("kstTrkmMuMatch",      &kstTrkmMuMatch);
   theTree->Branch("kstTrkmIso",          &kstTrkmIso);
   theTree->Branch("kstTrkmIsoPt",        &kstTrkmIsoPt);
@@ -1271,6 +1322,10 @@ void B0KstMuMuTreeContent::MakeTreeBranches (TTree* theTree)
   theTree->Branch("kstTrkpNPixLayers",   &kstTrkpNPixLayers);
   theTree->Branch("kstTrkpNTrkHits",     &kstTrkpNTrkHits);
   theTree->Branch("kstTrkpNTrkLayers",   &kstTrkpNTrkLayers);
+  theTree->Branch("kstTrkpHitInPixLayer1",   &kstTrkpHitInPixLayer1);
+  theTree->Branch("kstTrkpHitInPixLayer2",   &kstTrkpHitInPixLayer2);
+  theTree->Branch("kstTrkpHitInPixLayer3",   &kstTrkpHitInPixLayer3);
+  theTree->Branch("kstTrkpHitInPixLayer4",   &kstTrkpHitInPixLayer4);
   theTree->Branch("kstTrkpMuMatch",      &kstTrkpMuMatch);
   theTree->Branch("kstTrkpIso",          &kstTrkpIso);
   theTree->Branch("kstTrkpIsoPt",        &kstTrkpIsoPt);
