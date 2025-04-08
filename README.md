@@ -1,13 +1,13 @@
 # miniB0KstarMuMu
 
-**ntuple production**  
+**ntuple production for Run 3**  
 ```
 cmsrel CMSSW_14_2_2 
 cd CMSSW_14_2_2/src
 
 cmsenv  
 
-git clone git@github.com:CMSKStarMuMu/miniB0KstarMuMu.git 
+git clone -b run3-test git@github.com:CMSKStarMuMu/miniB0KstarMuMu.git 
 scram b -j
 
 cd miniB0KstarMuMu/miniKstarMuMu/test
