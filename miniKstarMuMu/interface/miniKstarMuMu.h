@@ -8,7 +8,7 @@
 // user include files
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -47,12 +47,12 @@
 #include "B0KstMuMuTreeContent.h"
 #include "miniB0KstarMuMu/miniKstarMuMu/interface/miniHLTObj.h"
 
-
+#include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 //
 // class declaration
 //
 
-class miniKstarMuMu : public edm::EDAnalyzer {
+class miniKstarMuMu : public edm::one::EDAnalyzer<> {
    public:
       explicit miniKstarMuMu (const edm::ParameterSet&);
       ~miniKstarMuMu();
@@ -92,6 +92,7 @@ class miniKstarMuMu : public edm::EDAnalyzer {
       HLTPrescaleProvider hltPrescaleProvider_;
       edm::EDGetTokenT<GlobalAlgBlkBxCollection> l1results_;
       edm::EDGetTokenT<GlobalExtBlkBxCollection> l1ext_;
+      edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldToken_;
 	  // ####################
 	  // # HLT-trigger cuts #
 	  // ####################

@@ -4,7 +4,7 @@
 
 // user include files
 #include "FWCore/Framework/interface/ConsumesCollector.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
+#include "FWCore/Framework/interface/one/EDAnalyzer.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -98,6 +98,7 @@ miniKstarMuMu::miniKstarMuMu(const edm::ParameterSet& iConfig):
     hltPrescaleProvider_ (iConfig, consumesCollector(), *this),
     l1results_      (consumes<GlobalAlgBlkBxCollection>  (iConfig.getParameter<edm::InputTag>("l1results"))),
     l1ext_          (consumes<GlobalExtBlkBxCollection>  (iConfig.getParameter<edm::InputTag>("l1results"))),
+    magneticFieldToken_  (esConsumes<MagneticField, IdealMagneticFieldRecord>()),
 
     // # Load HLT-trigger cuts #
     CLMUMUVTX          ( iConfig.getUntrackedParameter<double>("MuMuVtxCL")      ),
@@ -128,7 +129,9 @@ miniKstarMuMu::miniKstarMuMu(const edm::ParameterSet& iConfig):
   NTuple->ClearNTuple();
   
   Utility = new Utils();
-  fGtUtil = new l1t::L1TGlobalUtil(iConfig, consumesCollector(), *this, iConfig.getParameter<edm::InputTag>("l1results"), iConfig.getParameter<edm::InputTag>("l1results"));
+  l1t::UseEventSetupIn useEventSetupIn = l1t::UseEventSetupIn::RunAndEvent;
+  fGtUtil = new l1t::L1TGlobalUtil(iConfig, consumesCollector(), *this, iConfig.getParameter<edm::InputTag>("l1results"), iConfig.getParameter<edm::InputTag>("l1results"), useEventSetupIn);
+//  if( !(fGtUtil->valid()) ) exit(1);
 
 }
 
@@ -137,8 +140,9 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
 
     // Get magnetic field
-    edm::ESHandle<MagneticField> bFieldHandle;
-    iSetup.get<IdealMagneticFieldRecord>().get(bFieldHandle);      
+     edm::ESHandle<MagneticField> bFieldHandle = iSetup.getHandle(magneticFieldToken_);
+//    std::cout<<"Magnetic Field nominal Value: "<<bFieldHandle->nominalValue()<<std::endl; 
+
     // Get BeamSpot
     edm::Handle<reco::BeamSpot> beamSpotH;
     iEvent.getByToken(beamSpotToken_, beamSpotH);
@@ -204,15 +208,8 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     iEvent.getByToken(triggerObjects_,   triggerObjects);
     iEvent.getByToken(triggerPrescales_, triggerPrescales);
 
-    edm::Handle<edm::TriggerResults>                    triggerBits;
-    edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
-    edm::Handle<pat::PackedTriggerPrescales>            triggerPrescales;
 
-    iEvent.getByToken(triggerBits_,      triggerBits);
-    iEvent.getByToken(triggerObjects_,   triggerObjects);
-    iEvent.getByToken(triggerPrescales_, triggerPrescales);
-
-    bool foundOneRefTrig = false;
+//    bool foundOneRefTrig = false;
     const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
     // pass at least one prescaled trigger
 //     for (unsigned int i = 0, n = triggerBits->size(); i < n; ++i) {
@@ -231,7 +228,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             if (names.triggerName(i).find(trigTable_[it]) != std::string::npos && triggerBits->accept(i))
             {
                 NTuple->TrigTable->push_back(names.triggerName(i) );
-                NTuple->TrigPrescales->push_back(triggerPrescales->getPrescaleForIndex(i));
+                NTuple->TrigPrescales->push_back(triggerPrescales->getPrescaleForIndex<double>(i));
                 foundOneTrig = true;
             }
         }
@@ -249,15 +246,14 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if (l1results.isValid()) {  
     
-      fGtUtil->retrieveL1(iEvent, iSetup, l1results_);
+    fGtUtil->retrieveL1(iEvent, iSetup, l1results_);
 
 //       const std::vector<std::pair<std::string, bool> > initialDecisions = fGtUtil->decisionsInitial();
 //       const std::vector<std::pair<std::string, bool> > intermDecisions = fGtUtil->decisionsInterm();
-      const std::vector<std::pair<std::string, bool> > finalDecisions = fGtUtil->decisionsFinal();
-      const std::vector<std::pair<std::string, int> >  prescales = fGtUtil->prescales();
-
-      for (unsigned int i = 0; i < finalDecisions.size(); ++i) {
-        std::string name = (finalDecisions.at(i)).first;
+      const std::vector<std::pair<std::string_view, bool> > finalDecisions = fGtUtil->decisionsFinal();
+      const std::vector<std::pair<std::string_view, double> >  prescales = fGtUtil->prescales();
+   for (unsigned int i = 0; i < finalDecisions.size(); ++i) {
+        std::string name = (std::string)((finalDecisions.at(i)).first);
         if (name == "NULL") continue;
         for (unsigned int it = 0; it < l1Table_.size(); it++){
           if (name.compare(l1Table_[it]) == 0){
@@ -268,9 +264,8 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
             }
           }
         }
-      }
-	}  
-
+       }
+    }
     // save HLT objects 
     for (pat::TriggerObjectStandAlone obj : *triggerObjects) { // note: not "const &" since we want to call unpackPathNames
         obj.unpackPathNames(names);
@@ -293,7 +288,7 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
         }
     }
     
-    
+   
     edm::Handle<reco::VertexCollection> vertices;
     iEvent.getByToken(vtxToken_, vertices);
     if (vertices->empty()) return; // skip the event if no PV found
@@ -708,8 +703,8 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                     // #################################################
                     MuMCat.clear();         MuPCat.clear();
                     MuMCat = "NotMatched";  MuPCat = "NotMatched";
-                    bool foundTkmMum = false; 
-                    bool foundTkpMup = false; 
+ //                    bool foundTkmMum = false; 
+//                     bool foundTkpMup = false; 
                     
                     for (const pat::Muon &imutmp : *muons) {
                         for (unsigned int i = 0; i < imutmp.numberOfSourceCandidatePtrs(); ++i) {

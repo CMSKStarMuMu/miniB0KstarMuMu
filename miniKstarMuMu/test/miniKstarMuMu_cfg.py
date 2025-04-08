@@ -17,23 +17,27 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
+#process.load("Configuration.StandardSequences.MagneticField_38T_cff")
+
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
-process.GlobalTag.globaltag = cms.string('102X_dataRun2_v14') ## for data
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
+#process.GlobalTag.globaltag = cms.string('123X_dataRun3_HLT_v14') ## for data
+
+#process.GlobalTag.globaltag = cms.string('102X_dataRun2_v14') ## for data
 
 process.source = cms.Source("PoolSource",
+#BPark
     fileNames = cms.untracked.vstring(
-         'root://cms-xrd-global.cern.ch//store/data/Run2016D/DoubleMuonLowMass/MINIAOD/17Jul2018-v1/00000/0640371F-618B-E811-920D-A4BF01013D80.root',
-#          'root://cmsxrootd.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/40000/CEC0EC25-998A-E811-9141-1866DA890268.root',
-#          'root://cmsxrootd-site.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/40000/720A2BF1-E68B-E811-B8E8-0CC47A7C357E.root'   ,
-#          'root://cmsxrootd.fnal.gov//store/data/Run2016D/Charmonium/MINIAOD/17Jul2018-v1/00000/B261F4B0-D18A-E811-BBD5-0CC47A4D7694.root'      
-#         'root://cms-xrd-global.cern.ch//store/mc/PhaseIITDRFall17MiniAOD/BdToKstarMuMu_BMuonFilter_SoftQCDnonD_TuneCP5_14TeV-pythia8-evtgen/MINIAODSIM/PU200_93X_upgrade2023_realistic_v2-v1/80000/001104CE-6234-E811-A305-008CFAF71768.root'
-#         'root://cms-xrd-global.cern.ch//store/data/Run2016B/DoubleMuonLowMass/MINIAOD/17Jul2018_ver2-v1/40000/BA586DA4-E98E-E811-B7EA-AC1F6B1E2FC2.root',
-#         'root://cms-xrd-global.cern.ch//store/data/Run2017D/DoubleMuonLowMass/MINIAOD/31Mar2018-v1/80000/BEED2B1D-0837-E811-AD18-00259073E39C.root',
-#         'root://cms-xrd-global.cern.ch//store/data/Run2016B/DoubleMuonLowMass/MINIAOD/17Jul2018_ver2-v1/40000/74FB0778-1E8F-E811-9AFE-AC1F6B1AF140.root',
-#         'root://cms-xrd-global.cern.ch//store/data/Run2016B/DoubleMuonLowMass/MINIAOD/17Jul2018_ver2-v1/40000/326E3295-5A8F-E811-A881-00266CFFBF4C.root',
-#         'root://cms-xrd-global.cern.ch//store/data/Run2016B/DoubleMuonLowMass/MINIAOD/17Jul2018_ver2-v1/40000/109663C3-878E-E811-8967-7CD30ACE0FE7.root',
-#         'root://cms-xrd-global.cern.ch//store/data/Run2016B/DoubleMuonLowMass/MINIAOD/17Jul2018_ver2-v1/40000/08195A78-428F-E811-A873-008CFA105EFC.root',
-#         'root://cms-xrd-global.cern.ch//store/data/Run2016B/DoubleMuonLowMass/MINIAOD/17Jul2018_ver2-v1/00000/F8C40268-1D8F-E811-9314-AC1F6B1E30B2.root',
+#   'file://19fa6c32-3757-4312-9bbc-35c6a0b7c6bd.root',
+#   'file://13d368c5-3e9d-43ce-93fb-62ec35ff0b53.root',
+#   'file://010f5c73-45d9-44e9-a1dc-f77f10e09410.root',
+
+#
+
+     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/19fa6c32-3757-4312-9bbc-35c6a0b7c6bd.root',
+     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/13d368c5-3e9d-43ce-93fb-62ec35ff0b53.root',
+     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/010f5c73-45d9-44e9-a1dc-f77f10e09410.root',
     ),
 #     lumisToProcess = cms.untracked.VLuminosityBlockRange('275282:93-275282:94'),
 #     eventsToProcess = cms.untracked.VEventRange(
@@ -54,7 +58,7 @@ taskB0.add(process.unpackedTracksAndVertices)
 # )
 # taskB0.add(process.selectedPFCandidatesHP)
 
-# process.dump=cms.EDAnalyzer('EventContentAnalyzer')
+process.dump=cms.EDAnalyzer('EventContentAnalyzer')
 
 
 process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
@@ -67,48 +71,51 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
     bits          = cms.InputTag("TriggerResults","","HLT"),
     prescales     = cms.InputTag("patTrigger"),
     objects       = cms.InputTag("slimmedPatTrigger"),
-    TriggerNames  = cms.vstring("HLT_DoubleMu4_LowMassNonResonantTrk_Displaced_v", 
-                                "HLT_DoubleMu4_JpsiTrk_Displaced_v",
-                                "HLT_DoubleMu4_PsiPrimeTrk_Displaced_v"
+    stageL1Trigger = cms.uint32(1),
+#    TriggerNames  = cms.vstring("HLT_DoubleMu4_LowMassNonResonantTrk_Displaced_v", 
+#                                "HLT_DoubleMu4_JpsiTrk_Displaced_v",
+#                                "HLT_DoubleMu4_PsiPrimeTrk_Displaced_v"
+    TriggerNames  = cms.vstring("HLT_DoubleMu4_LowMass_Displaced_v", 
+                                "HLT_DoubleMu4_Jpsi_Displaced_v",
+                                "HLT_DoubleMu4_MuMuTrk_Displaced_v"
                     ),
     L1Names  = cms.vstring("L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4", 
-                           "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4",
-                           "L1_DoubleMu4_SQ_OS_dR_Max1p2", 
-                           "L1_DoubleMu4p5_SQ_OS_dR_Max1p2",
-                    ),
-
+			  "L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4",
+			  "L1_DoubleMu4_SQ_OS_dR_Max1p2", 
+			  "L1_DoubleMu4p5_SQ_OS_dR_Max1p2",
+		   ),
     packed = cms.InputTag("packedGenParticles"),
     pruned = cms.InputTag("prunedGenParticles"),
 
-    PuInfoTag        = cms.InputTag("slimmedAddPileupInfo"),
-    l1results        = cms.InputTag("gtStage2Digis"),
+    PuInfoTag	     = cms.InputTag("slimmedAddPileupInfo"),
+    l1results	     = cms.InputTag("gtStage2Digis"),
 
     ## HLT selections
-    MuMuVtxCL        = cms.untracked.double(0.1 ),  # mu-mu Vtx CL [0.1]
-    MuMuLsBS         = cms.untracked.double(3   ),    # mu-mu L/sigma w/respect to BS [3.0]
-    DCAMuMu          = cms.untracked.double(0.5 ),    # mu-mu DCA w/respect to each other [0.5 cm]
-    DCAMuBS          = cms.untracked.double(2.0 ),    # mu DCA w/respect to BS [2.0 cm]
+    MuMuVtxCL	     = cms.untracked.double(0.1 ),  # mu-mu Vtx CL [0.1]
+    MuMuLsBS	     = cms.untracked.double(3	),    # mu-mu L/sigma w/respect to BS [3.0]
+    DCAMuMu	     = cms.untracked.double(0.5 ),    # mu-mu DCA w/respect to each other [0.5 cm]
+    DCAMuBS	     = cms.untracked.double(2.0 ),    # mu DCA w/respect to BS [2.0 cm]
     cosAlphaMuMuBS   = cms.untracked.double(0.9 ),    # mu-mu cos(alpha) w/respect to BS [0.9]
-    MinMupT          = cms.untracked.double(4.0 ),    # mu min pT [4.0 GeV/c]
-    MuEta            = cms.untracked.double(2.4 ),    # mu max eta [2.4]
-    MuMupT           = cms.untracked.double(6.9 ),    # mu-mu min pT [6.9 GeV/c]
+    MinMupT	     = cms.untracked.double(4.0 ),    # mu min pT [4.0 GeV/c]
+    MuEta	     = cms.untracked.double(2.4 ),    # mu max eta [2.4]
+    MuMupT	     = cms.untracked.double(6.9 ),    # mu-mu min pT [6.9 GeV/c]
     MinMuMuMass      = cms.untracked.double(1.0 ),    # mu-mu min inv. mass [1.0 GeV/c2]
     MaxMuMuMass      = cms.untracked.double(4.8 ),    # mu-mu max inv. mass [4.8 GeV/c2]
     ## Cand pre-selections
-    MinB0Mass        = cms.untracked.double(4.5 ),    # B0 mass lower limit [4.5 GeV/c2]
-    MaxB0Mass        = cms.untracked.double(6.5 ),    # B0 mass upper limit [6.5 GeV/c2]
-    B0VtxCL          = cms.untracked.double(0.01),  # B0 Vtx CL [0.01]
-    KstMass          = cms.untracked.double(3.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
-    HadDCASBS        = cms.untracked.double(0.8 ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
-    HadpT            = cms.untracked.double( .8 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
+     MinB0Mass	     = cms.untracked.double(4.5 ),    # B0 mass lower limit [4.5 GeV/c2]
+     MaxB0Mass	     = cms.untracked.double(6.5 ),    # B0 mass upper limit [6.5 GeV/c2]
+    B0VtxCL	     = cms.untracked.double(0.01),  # B0 Vtx CL [0.01]
+    KstMass	     = cms.untracked.double(3.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
+    HadDCASBS	     = cms.untracked.double(0.8 ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
+    HadpT	     = cms.untracked.double( .8 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
     MaxB0RoughMass   = cms.untracked.double(20. ),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
 
-    printMsg         = cms.untracked.bool(False)
+    printMsg	     = cms.untracked.bool(False)
 )
 
 process.TFileService = cms.Service('TFileService', 
     fileName = cms.string(
-        'B0ToKstMuMu_miniaod.root'
+	'B0ToKstMuMu_miniaod.root'
     ), 
     closeFileFast = cms.untracked.bool(True)
 )

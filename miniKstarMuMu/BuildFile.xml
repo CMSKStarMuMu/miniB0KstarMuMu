@@ -12,7 +12,6 @@
 <use name="TrackingTools/IPTools"/>
 <use name="TrackingTools/Records"/>
 <use name="TrackingTools/TransientTrack"/>
-<use name="rootcintex"/>
 <use name="root"/>
 <export>
   <lib name="1"/>
