@@ -21,6 +21,10 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
+#
+# It might be better to set the GlobalTag explicitly in productions, otherwise there will be unpredictable effects due to the 
+# automatic selection of the GlobalTag. Since this script is just for testing, we can leave it as is. 
+#
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
 #process.GlobalTag.globaltag = cms.string('123X_dataRun3_HLT_v14') ## for data
 
