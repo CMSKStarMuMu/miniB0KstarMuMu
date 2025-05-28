@@ -259,6 +259,106 @@ def addVars(tagB0,
 
 
 
+
+def addVarsFromPtEtaPhi(tagB0,
+           mumuPt,     mumuEta,   mumuPhi,  mumuMass,
+           mumPt,      mumEta,     mumPhi,  
+           mupPt,      mupEta,     mupPhi,  
+           kstTrkmPt,  kstTrkmEta, kstTrkmPhi,
+           kstTrkpPt,  kstTrkpEta, kstTrkpPhi,
+           kstPt,      kstEta,     kstPhi,   kstMass, kstBarMass,
+           bPt,        bEta,       bPhi,     bMass,   bBarMass
+          ):
+          
+          
+  if mumuPt == -99:
+      return -99, -99, -99        
+                  
+  mumu_lv.SetPtEtaPhiM(mumuPt, mumuEta, mumuPhi, mumuMass)
+  kst_lv.SetPtEtaPhiM(kstPt, kstEta, kstPhi, tagB0*kstMass + (1-tagB0)*kstBarMass )
+  b0_lv.SetPtEtaPhiM(bPt, bEta, bPhi, tagB0*bMass* + (1-tagB0)*bBarMass)
+
+  mum_lv.SetPtEtaPhiM(mumPt, mumEta, mumPhi, muonmass_)
+  mup_lv.SetPtEtaPhiM(mupPt, mupEta, mupPhi, muonmass_)
+
+  tkp_lv.SetPtEtaPhiM(kstTrkpPt, kstTrkpEta, kstTrkpPhi, tagB0*kaonmass_ + (1-tagB0)*pionmass_)
+  tkm_lv.SetPtEtaPhiM(kstTrkmPt, kstTrkmEta, kstTrkmPhi, tagB0*pionmass_ + (1-tagB0)*kaonmass_)
+  
+  cos_theta_k     = -99.
+  cos_theta_l     = -99.
+  phiKstMuMuPlane = -99.
+
+  if tagB0:
+    mu_lv_boosted   = dc(mup_lv)
+    kaon_lv_boosted = dc(tkp_lv)
+  
+  else:
+    mu_lv_boosted = dc(mum_lv)
+    kaon_lv_boosted = dc(tkm_lv)
+    
+  ## calculate cos theta_l
+  boostMuMu = mumu_lv.BoostVector()
+  mu_lv_boosted.Boost(-boostMuMu)
+  b0_lv_boosted = dc(b0_lv)
+  b0_lv_boosted.Boost(-boostMuMu)
+  
+  cos_theta_l = computeCosine(-b0_lv_boosted.Px(),
+                              -b0_lv_boosted.Py(),
+                              -b0_lv_boosted.Pz(),
+                               mu_lv_boosted.Px(),
+                               mu_lv_boosted.Py(),
+                               mu_lv_boosted.Pz()
+                             )
+
+  ## calculate cos theta_k
+  boostKst = kst_lv.BoostVector()
+  kaon_lv_boosted.Boost(-boostKst)
+  b0_lv_boosted = dc(b0_lv)
+  b0_lv_boosted.Boost(-boostKst)
+
+  cos_theta_k = computeCosine(-b0_lv_boosted.Px(),
+                              -b0_lv_boosted.Py(),
+                              -b0_lv_boosted.Pz(),
+                               kaon_lv_boosted.Px(),
+                               kaon_lv_boosted.Py(),
+                               kaon_lv_boosted.Pz()
+                             )
+
+  ## calculate angle between planes
+  boostB0 = b0_lv.BoostVector()
+  mum_lv_boosted = dc(mum_lv)
+  mum_lv_boosted.Boost(-boostB0)
+
+  mup_lv_boosted = dc(mup_lv)
+  mup_lv_boosted.Boost(-boostB0)
+  
+  tkp_lv_boosted = dc(tkp_lv)
+  tkp_lv_boosted.Boost(-boostB0)
+
+  tkm_lv_boosted = dc(tkm_lv)
+  tkm_lv_boosted.Boost(-boostB0)
+  
+  MuMuPlane = mup_lv_boosted.Vect().Cross(mum_lv_boosted.Vect())
+  KstPlane  = tkp_lv_boosted.Vect().Cross(tkm_lv_boosted.Vect())
+
+  kst_lv_boosted = dc(kst_lv)
+  kst_lv_boosted.Boost(-boostB0)
+  phiKstMuMuPlane = -99
+  if tagB0==1:
+    if MuMuPlane.Cross(KstPlane).Dot(kst_lv_boosted.Vect()) > 0:
+      phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
+    else:
+      phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+  elif tagB0==0:
+    if MuMuPlane.Cross(KstPlane).Dot(kst_lv_boosted.Vect()) > 0:
+      phiKstMuMuPlane = -MuMuPlane.Angle(KstPlane)
+    else:
+      phiKstMuMuPlane = MuMuPlane.Angle(KstPlane)
+
+  return cos_theta_l, cos_theta_k, phiKstMuMuPlane
+
+
+
 def addMMKVars(
             mumPt,  mumEta,  mumPhi,  
             mupPt,  mupEta,  mupPhi,  

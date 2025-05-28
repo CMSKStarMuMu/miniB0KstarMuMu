@@ -630,6 +630,11 @@ miniKstarMuMu::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                       if (printMsg) std::cout << __LINE__ << " : continue --> invalid vertex from the K*0 vertex fit" << std::endl;
                       continue;
                     }
+                    if (TMath::Prob(static_cast<double>(kst_KV->chiSquared()), static_cast<int>(rint(kst_KV->degreesOfFreedom()))) < CLMUMUVTX)
+                    {
+                      if (printMsg) std::cout << __LINE__ << " : continue --> bad vtx CL from di track fit: " << TMath::Prob(static_cast<double>(kst_KV->chiSquared()), static_cast<int>(rint(kst_KV->degreesOfFreedom()))) << std::endl;
+                      continue;
+                    }
     
     
                     chi = 0.;

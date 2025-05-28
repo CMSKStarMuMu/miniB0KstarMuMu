@@ -13,7 +13,7 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 # )
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(4500) )
 
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
@@ -33,15 +33,9 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
 process.source = cms.Source("PoolSource",
 #BPark
     fileNames = cms.untracked.vstring(
-#    'file://19fa6c32-3757-4312-9bbc-35c6a0b7c6bd.root',
-#    'file://13d368c5-3e9d-43ce-93fb-62ec35ff0b53.root',
-#    'file://010f5c73-45d9-44e9-a1dc-f77f10e09410.root',
-
-#
-
-    'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/19fa6c32-3757-4312-9bbc-35c6a0b7c6bd.root',
-    'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/13d368c5-3e9d-43ce-93fb-62ec35ff0b53.root',
-    'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/010f5c73-45d9-44e9-a1dc-f77f10e09410.root',
+    'root://cms-xrd-global.cern.ch///store/data/Run2024C/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/379/416/00000/0134a8bc-c8d4-400e-9508-2a4b222c5431.root',
+#     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/13d368c5-3e9d-43ce-93fb-62ec35ff0b53.root',
+#     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/010f5c73-45d9-44e9-a1dc-f77f10e09410.root',
     ),
 #     lumisToProcess = cms.untracked.VLuminosityBlockRange('275282:93-275282:94'),
 #     eventsToProcess = cms.untracked.VEventRange(
@@ -102,23 +96,23 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
     l1results	     = cms.InputTag("gtStage2Digis"),
 
     ## HLT selections
-    MuMuVtxCL	     = cms.untracked.double(0.1 ),  # mu-mu Vtx CL [0.1]
-    MuMuLsBS	     = cms.untracked.double(3	),    # mu-mu L/sigma w/respect to BS [3.0]
-    DCAMuMu	     = cms.untracked.double(0.5 ),    # mu-mu DCA w/respect to each other [0.5 cm]
-    DCAMuBS	     = cms.untracked.double(2.0 ),    # mu DCA w/respect to BS [2.0 cm]
-    cosAlphaMuMuBS   = cms.untracked.double(0.9 ),    # mu-mu cos(alpha) w/respect to BS [0.9]
-    MinMupT	     = cms.untracked.double(4.0 ),    # mu min pT [4.0 GeV/c]
+    MuMuVtxCL	     = cms.untracked.double(0.001 ),  # mu-mu Vtx CL [0.1]
+    MuMuLsBS	     = cms.untracked.double(-1	),    # mu-mu L/sigma w/respect to BS [3.0]
+    DCAMuMu	     = cms.untracked.double(999999 ),    # mu-mu DCA w/respect to each other [0.5 cm]
+    DCAMuBS	     = cms.untracked.double(999999 ),    # mu DCA w/respect to BS [2.0 cm]
+    cosAlphaMuMuBS   = cms.untracked.double(-10.),    # mu-mu cos(alpha) w/respect to BS [0.9]
+    MinMupT	     = cms.untracked.double(3.0 ),    # mu min pT [4.0 GeV/c]
     MuEta	     = cms.untracked.double(2.4 ),    # mu max eta [2.4]
-    MuMupT	     = cms.untracked.double(6.9 ),    # mu-mu min pT [6.9 GeV/c]
-    MinMuMuMass      = cms.untracked.double(1.0 ),    # mu-mu min inv. mass [1.0 GeV/c2]
-    MaxMuMuMass      = cms.untracked.double(4.8 ),    # mu-mu max inv. mass [4.8 GeV/c2]
+    MuMupT	     = cms.untracked.double(-1. ),    # mu-mu min pT [6.9 GeV/c]
+    MinMuMuMass      = cms.untracked.double(0   ),    # mu-mu min inv. mass [1.0 GeV/c2]
+    MaxMuMuMass      = cms.untracked.double(5   ),    # mu-mu max inv. mass [4.8 GeV/c2]
     ## Cand pre-selections
-     MinB0Mass	     = cms.untracked.double(4.5 ),    # B0 mass lower limit [4.5 GeV/c2]
-     MaxB0Mass	     = cms.untracked.double(6.5 ),    # B0 mass upper limit [6.5 GeV/c2]
-    B0VtxCL	     = cms.untracked.double(0.01),  # B0 Vtx CL [0.01]
-    KstMass	     = cms.untracked.double(3.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
-    HadDCASBS	     = cms.untracked.double(0.8 ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
-    HadpT	     = cms.untracked.double( .8 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
+    MinB0Mass	     = cms.untracked.double(4.5 ),    # B0 mass lower limit [4.5 GeV/c2]
+    MaxB0Mass	     = cms.untracked.double(6.5 ),    # B0 mass upper limit [6.5 GeV/c2]
+    B0VtxCL	     = cms.untracked.double(-1  ),    # B0 Vtx CL [0.01]
+    KstMass	     = cms.untracked.double(6.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
+    HadDCASBS	     = cms.untracked.double(0.  ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
+    HadpT	     = cms.untracked.double(0.7 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
     MaxB0RoughMass   = cms.untracked.double(20. ),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
 
     printMsg	     = cms.untracked.bool(False)
