@@ -159,30 +159,25 @@ mupSoftMVARun3Score    = array('d', [-99.]);  newbr.append(mupSoftMVARun3Score)
 # kstTrkmHighPurity                = array('d', [-99.]);  newbr.append(kstTrkmHighPurity)
 # kstTrkmCL                        = array('d', [-99.]);  newbr.append(kstTrkmCL)
 # kstTrkmNormChi2                  = array('d', [-99.]);  newbr.append(kstTrkmNormChi2)
-# kstTrkmPz                        = array('d', [-99.]);  newbr.append(kstTrkmPz)
 kstTrkmDCABSSign                     = array('d', [-99.]);  newbr.append(kstTrkmDCABSSign)
 # kstTrkmDCABSE                    = array('d', [-99.]);  newbr.append(kstTrkmDCABSE)
-# kstTrkmFracHits                  = array('d', [-99.]);  newbr.append(kstTrkmFracHits)
 # kstTrkmMinIP2D                   = array('d', [-99.]);  newbr.append(kstTrkmMinIP2D)
 # kstTrkmMinIP2DE                  = array('d', [-99.]);  newbr.append(kstTrkmMinIP2DE)
 kstTrkmNPixHits                  = array('d', [-99.]);  newbr.append(kstTrkmNPixHits)
 # kstTrkmNPixLayers                = array('d', [-99.]);  newbr.append(kstTrkmNPixLayers)
-# kstTrkmNTrkHits                  = array('d', [-99.]);  newbr.append(kstTrkmNTrkHits)
+kstTrkmNTrkHits                  = array('d', [-99.]);  newbr.append(kstTrkmNTrkHits)
 # kstTrkmNTrkLayers                = array('d', [-99.]);  newbr.append(kstTrkmNTrkLayers)
 # kstTrkmMuMatch                   = array('d', [-99.]);  newbr.append(kstTrkmMuMatch)
 # kstTrkpHighPurity                = array('d', [-99.]);  newbr.append(kstTrkpHighPurity)
 # kstTrkpCL                        = array('d', [-99.]);  newbr.append(kstTrkpCL)
 # kstTrkpNormChi2                  = array('d', [-99.]);  newbr.append(kstTrkpNormChi2)
-# kstTrkpPz                        = array('d', [-99.]);  newbr.append(kstTrkpPz)
 kstTrkpDCABSSign                     = array('d', [-99.]);  newbr.append(kstTrkpDCABSSign)
 # kstTrkpDCABSE                    = array('d', [-99.]);  newbr.append(kstTrkpDCABSE)
-# kstTrkpFracHits                  = array('d', [-99.]);  newbr.append(kstTrkpFracHits)
 # kstTrkpMinIP2D                   = array('d', [-99.]);  newbr.append(kstTrkpMinIP2D)
 # kstTrkpMinIP2DE                  = array('d', [-99.]);  newbr.append(kstTrkpMinIP2DE)
 kstTrkpNPixHits                  = array('d', [-99.]);  newbr.append(kstTrkpNPixHits)
 # kstTrkpNPixLayers                = array('d', [-99.]);  newbr.append(kstTrkpNPixLayers)
-# kstTrkpNTrkHits                  = array('d', [-99.]);  newbr.append(kstTrkpNTrkHits)
-# kstTrkpNTrkLayers                = array('d', [-99.]);  newbr.append(kstTrkpNTrkLayers)
+kstTrkpNTrkHits                  = array('d', [-99.]);  newbr.append(kstTrkpNTrkHits)
 # kstTrkpMuMatch                   = array('d', [-99.]);  newbr.append(kstTrkpMuMatch)
 tagB0                            = array('d', [-99.]);  newbr.append(tagB0)
 # 
@@ -350,30 +345,22 @@ ntuple.Branch('mupSoftMVARun3Score', mupSoftMVARun3Score ,                      
 # ntuple.Branch('kstTrkmHighPurity',      kstTrkmHighPurity,                      'kstTrkmHighPurity/D')
 # ntuple.Branch('kstTrkmCL',              kstTrkmCL,                              'kstTrkmCL/D')
 # ntuple.Branch('kstTrkmNormChi2',        kstTrkmNormChi2,                        'kstTrkmNormChi2/D')
-# ntuple.Branch('kstTrkmPz',              kstTrkmPz,                              'kstTrkmPz/D')
 ntuple.Branch('kstTrkmDCABSSign',           kstTrkmDCABSSign,                           'kstTrkmDCABSSign/D')
 # ntuple.Branch('kstTrkmDCABSE',          kstTrkmDCABSE,                          'kstTrkmDCABSE/D')
-# ntuple.Branch('kstTrkmFracHits',        kstTrkmFracHits,                        'kstTrkmFracHits/D')
 # ntuple.Branch('kstTrkmMinIP2D',         kstTrkmMinIP2D,                         'kstTrkmMinIP2D/D')
 # ntuple.Branch('kstTrkmMinIP2DE',        kstTrkmMinIP2DE,                        'kstTrkmMinIP2DE/D')
 ntuple.Branch('kstTrkmNPixHits',        kstTrkmNPixHits,                        'kstTrkmNPixHits/D')
-# ntuple.Branch('kstTrkmNPixLayers',      kstTrkmNPixLayers,                      'kstTrkmNPixLayers/D')
-# ntuple.Branch('kstTrkmNTrkHits',        kstTrkmNTrkHits,                        'kstTrkmNTrkHits/D')
-# ntuple.Branch('kstTrkmNTrkLayers',      kstTrkmNTrkLayers,                      'kstTrkmNTrkLayers/D')
+ntuple.Branch('kstTrkmNTrkHits',        kstTrkmNTrkHits,                        'kstTrkmNTrkHits/D')
 # ntuple.Branch('kstTrkmMuMatch',         kstTrkmMuMatch,                         'kstTrkmMuMatch/D')
 # ntuple.Branch('kstTrkpHighPurity',      kstTrkpHighPurity,                      'kstTrkpHighPurity/D')
 # ntuple.Branch('kstTrkpCL',              kstTrkpCL,                              'kstTrkpCL/D')
 # ntuple.Branch('kstTrkpNormChi2',        kstTrkpNormChi2,                        'kstTrkpNormChi2/D')
-# ntuple.Branch('kstTrkpPz',              kstTrkpPz,                              'kstTrkpPz/D')
 ntuple.Branch('kstTrkpDCABSSign',           kstTrkpDCABSSign,                           'kstTrkpDCABSSign/D')
 # ntuple.Branch('kstTrkpDCABSE',          kstTrkpDCABSE,                          'kstTrkpDCABSE/D')
-# ntuple.Branch('kstTrkpFracHits',        kstTrkpFracHits,                        'kstTrkpFracHits/D')
 # ntuple.Branch('kstTrkpMinIP2D',         kstTrkpMinIP2D,                         'kstTrkpMinIP2D/D')
 # ntuple.Branch('kstTrkpMinIP2DE',        kstTrkpMinIP2DE,                        'kstTrkpMinIP2DE/D')
 ntuple.Branch('kstTrkpNPixHits',        kstTrkpNPixHits,                        'kstTrkpNPixHits/D')
-# ntuple.Branch('kstTrkpNPixLayers',      kstTrkpNPixLayers,                      'kstTrkpNPixLayers/D')
-# ntuple.Branch('kstTrkpNTrkHits',        kstTrkpNTrkHits,                        'kstTrkpNTrkHits/D')
-# ntuple.Branch('kstTrkpNTrkLayers',      kstTrkpNTrkLayers,                      'kstTrkpNTrkLayers/D')
+ntuple.Branch('kstTrkpNTrkHits',        kstTrkpNTrkHits,                        'kstTrkpNTrkHits/D')
 # ntuple.Branch('kstTrkpMuMatch',         kstTrkpMuMatch,                         'kstTrkpMuMatch/D')
 ntuple.Branch('tagB0',                  tagB0,                                  'tagB0/D')
 ntuple.Branch('cos_theta_l' ,           cos_theta_l ,                           'cos_theta_l/D')
@@ -569,10 +556,9 @@ for i, ev in enumerate(tree_lmnr):
         kstPhi[0] = kst_lv_tmp.Phi()
         
         
-
         ## per-candidate quantities
-# *Br  169 :BToTrkTrkMuMu_fit_mass_Kpi :                                       *
-# *         | Float_t mass of the B candidate for the leading trk->Kaon subleading trk->pion mass hypothesis*
+        ## *Br  169 :BToTrkTrkMuMu_fit_mass_Kpi :                                       *
+        ## *         | Float_t mass of the B candidate for the leading trk->Kaon subleading trk->pion mass hypothesis*
 
         bMass[0]                       = ev.BToTrkTrkMuMu_fit_mass_Kpi[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_fit_mass_piK[icand]
         bMassE[0]                      = ev.BToTrkTrkMuMu_fit_massErr_Kpi[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_fit_massErr_piK[icand]
@@ -657,25 +643,14 @@ for i, ev in enumerate(tree_lmnr):
 #         mupTMOneStationTight     [0] = mupCategoryDict['TMOneStationTight']
 #         mupTMOneStationLoose     [0] = mupCategoryDict['TMOneStationLoose']
 #         
-#         if isNot2016: 
-#             mumdxyBS[0]         = ev.mumdxyBS[icand]
-#             mumdzBS[0]          = ev.mumdzBS[icand]
-#             mupdxyBS[0]         = ev.mupdxyBS[icand]
-#             mupdzBS[0]          = ev.mupdzBS[icand]
-# 
-#         
 #         kstTrkmHighPurity[0]           = ROOT.FindValueFromVectorOfBool(ev.kstTrkmHighPurity, icand)
 #         kstTrkmCL[0]                   = ev.kstTrkmCL[icand]
 #         kstTrkmNormChi2[0]             = ev.kstTrkmNormChi2[icand]
-#         kstTrkmPz[0]                   = ev.kstTrkmPz[icand]
 #         kstTrkmDCABS[0]                = ev.kstTrkmDCABS[icand]     ## theDCAXBS.perigeeParameters().transverseImpactParameter();
 #         kstTrkmDCABSE[0]               = ev.kstTrkmDCABSE[icand]
         kstTrkmDCABSSign[0]              = ev.Track_DCASig[tkm_index]
-#         kstTrkmFracHits[0]             = ev.kstTrkmFracHits[icand]
         kstTrkmNPixHits[0]               = ev.Track_nValidPixelHits[tkm_index]
-#         kstTrkmNPixLayers[0]           = ev.kstTrkmNPixLayers[icand]
-#         kstTrkmNTrkHits[0]             = ev.kstTrkmNTrkHits[icand]
-#         kstTrkmNTrkLayers[0]           = ev.kstTrkmNTrkLayers[icand]
+        kstTrkmNTrkHits[0]               = ev.Track_nValidHits[tkm_index]
 #         kstTrkmMinIP2D[0]              = ev.kstTrkmMinIP2D[icand]
 #         kstTrkmMinIP2DE[0]             = ev.kstTrkmMinIP2DE[icand]
 # 
@@ -690,18 +665,15 @@ for i, ev in enumerate(tree_lmnr):
 #         kstTrkpHighPurity[0]           = ROOT.FindValueFromVectorOfBool(ev.kstTrkpHighPurity, icand)
 #         kstTrkpCL[0]                   = ev.kstTrkpCL[icand]
 #         kstTrkpNormChi2[0]             = ev.kstTrkpNormChi2[icand]
-#         kstTrkpPz[0]                   = ev.kstTrkpPz[icand]
         kstTrkpDCABSSign[0]              = ev.Track_DCASig[tkp_index]
 #         kstTrkpDCABSE[0]               = ev.kstTrkpDCABSE[icand]
-#         kstTrkpFracHits[0]             = ev.kstTrkpFracHits[icand]
         kstTrkpNPixHits[0]               = ev.Track_nValidPixelHits[tkp_index]
-#         kstTrkpNPixLayers[0]           = ev.kstTrkpNPixLayers[icand]
-#         kstTrkpNTrkHits[0]             = ev.kstTrkpNTrkHits[icand]
-#         kstTrkpNTrkLayers[0]           = ev.kstTrkpNTrkLayers[icand]
+        kstTrkpNTrkHits[0]               = ev.Track_nValidHits[tkp_index]
 #         kstTrkpMinIP2D[0]              = ev.kstTrkpMinIP2D[icand]
 #         kstTrkpMinIP2DE[0]             = ev.kstTrkpMinIP2DE[icand]
 # 
 #         trkpCategoryDict = muonCategory(ev.kstTrkpMuMatch[icand])
+          ### in BPH nano there's Track_isMatchedToMuon
 #         kstTrkpGlobalMuon            [0] = trkpCategoryDict['GlobalMuon']
 #         kstTrkpTrackerMuon           [0] = trkpCategoryDict['TrackerMuon']
 #         kstTrkpStandAloneMuon        [0] = trkpCategoryDict['StandAloneMuon']
