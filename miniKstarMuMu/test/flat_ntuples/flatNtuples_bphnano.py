@@ -464,6 +464,7 @@ sys.stdout.flush()                          # this forces to print the stdout bu
 sys.stdout.write('\b'*(progressbarWidth+1)) # return to start of line, after '['
 
 for i, ev in enumerate(tree_lmnr):
+#     if i > 10:  continue
 
     if i%int(numEvents/(progressbarWidth-1))==0:
         sys.stdout.write('+')
@@ -493,10 +494,6 @@ for i, ev in enumerate(tree_lmnr):
         for var in isobr:
             var[0] = 0.
             
-        ## need to add skim on softMuID    
-#         if skimSoftMu and not ()    
-
-
         mup_index = ev.BToTrkTrkMuMu_l1_idx[icand] if ev.TrgMatchMuon_charge[ev.BToTrkTrkMuMu_l1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_l2_idx[icand] 
         mum_index = ev.BToTrkTrkMuMu_l1_idx[icand] if ev.TrgMatchMuon_charge[ev.BToTrkTrkMuMu_l1_idx[icand]] < 0 else ev.BToTrkTrkMuMu_l2_idx[icand] 
         tkp_index = ev.BToTrkTrkMuMu_trk1_idx[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_trk2_idx[icand] 
@@ -506,6 +503,10 @@ for i, ev in enumerate(tree_lmnr):
         l1_is_plus  = True if ev.TrgMatchMuon_charge[ev.BToTrkTrkMuMu_l1_idx[icand]] > 0 else False
         tk1_is_plus = True if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else False
         
+        ## skim on softMuID    
+        if skimSoftMu and not (ev.TrgMatchMuon_softId[mum_index] > 0 and ev.TrgMatchMuon_softId[mup_index]):
+          continue
+
         ## per event quantities
         runN[0]                        = ev.run
 #         recoVtxN[0]                    = ev.PV.npvsGood
@@ -537,7 +538,7 @@ for i, ev in enumerate(tree_lmnr):
         ## this would be the row pT
 #         kstPt[0]                       = ev.DiTrack_pt[ditk_index]
 
-        bPhi[0]                        = ev.BToTrkTrkMuMu_phi[icand]
+        bPhi[0]                         = ev.BToTrkTrkMuMu_phi[icand]
         mumPhi[0]                       = ev.BToTrkTrkMuMu_fit_l2_phi[icand] if l1_is_plus else ev.BToTrkTrkMuMu_fit_l1_phi[icand]
         mupPhi[0]                       = ev.BToTrkTrkMuMu_fit_l1_phi[icand] if l1_is_plus else ev.BToTrkTrkMuMu_fit_l2_phi[icand]
         kstTrkmPhi[0]                   = ev.BToTrkTrkMuMu_fit_trk2_phi[icand] if tk1_is_plus else ev.BToTrkTrkMuMu_fit_trk1_phi[icand]
@@ -611,15 +612,15 @@ for i, ev in enumerate(tree_lmnr):
 #         mumuLBSE[0]                    = ev.mumuLBSE[icand]
 #         mumuDCA[0]                     = ev.mumuDCA[icand]
 #         
-### mum_index
-        mumSoft                = ev.TrgMatchMuon_softId[mum_index]
-        mumSoftMVA             = ev.TrgMatchMuon_softMvaId[mum_index]
-        mumSoftMVARun3Score    = ev.TrgMatchMuon_softMvaRun3[mum_index]
+        ### mum_index
+        mumSoft[0]                = ev.TrgMatchMuon_softId[mum_index]
+        mumSoftMVA[0]             = ev.TrgMatchMuon_softMvaId[mum_index]
+        mumSoftMVARun3Score[0]    = ev.TrgMatchMuon_softMvaRun3[mum_index]
 
-### mup_index
-        mupSoft                = ev.TrgMatchMuon_softId[mup_index]      ### alll 999
-        mupSoftMVA             = ev.TrgMatchMuon_softMvaId[mup_index]      ### alll 999
-        mupSoftMVARun3Score    = ev.TrgMatchMuon_softMvaRun3[mup_index]      ### alll 999
+        ### mup_index
+        mupSoft[0]                = ev.TrgMatchMuon_softId[mup_index]      
+        mupSoftMVA[0]             = ev.TrgMatchMuon_softMvaId[mup_index]   
+        mupSoftMVARun3Score[0]    = ev.TrgMatchMuon_softMvaRun3[mup_index] 
 
 
 #         mumHighPurity[0]               = ROOT.FindValueFromVectorOfBool(ev.mumHighPurity, icand) 
