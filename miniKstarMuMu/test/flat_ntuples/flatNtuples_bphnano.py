@@ -493,6 +493,11 @@ for i, ev in enumerate(tree_lmnr):
         l1_is_plus  = True if ev.TrgMatchMuon_charge[ev.BToTrkTrkMuMu_l1_idx[icand]] > 0 else False
         tk1_is_plus = True if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else False
         
+
+        ## only triggering muons
+        if not (ev.TrgMatchMuon_isTriggering[mum_index] and ev.TrgMatchMuon_isTriggering[mup_index]): 
+          continue
+        
         ## skim on softMuID    
         if skimSoftMu and not (ev.TrgMatchMuon_softId[mum_index] > 0 and ev.TrgMatchMuon_softId[mup_index]):
           continue
@@ -691,7 +696,6 @@ for i, ev in enumerate(tree_lmnr):
         except:
           kstTrkpGlobalMuon            [0] = -1
           kstTrkpTrackerMuon           [0] = -1
-
 
 #         kstTrkpStandAloneMuon        [0] = trkpCategoryDict['StandAloneMuon']
 #         kstTrkpTrackerMuonArbitrated [0] = trkpCategoryDict['TrackerMuonArbitrated']
