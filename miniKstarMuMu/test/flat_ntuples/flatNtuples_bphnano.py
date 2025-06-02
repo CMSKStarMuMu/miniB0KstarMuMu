@@ -45,7 +45,8 @@ paths = [
 ###############################################
 tree_lmnr = ROOT.TChain('Events')
 
-tree_lmnr.Add('/gwpool/users/fiorendi/p5prime/run3/CMSSW_14_2_2/src/miniB0KstarMuMu/miniKstarMuMu/test/flat_ntuples/BPH_newversion.root')
+# tree_lmnr.Add('/gwpool/users/fiorendi/p5prime/run3/CMSSW_14_2_2/src/miniB0KstarMuMu/miniKstarMuMu/test/flat_ntuples/BPH_test_data_increased_precision.root')
+tree_lmnr.Add('/gwpool/users/fiorendi/p5prime/run3/CMSSW_14_2_2/src/miniB0KstarMuMu/miniKstarMuMu/test/flat_ntuples/BPH_test_data_increased_precision.root')
 file_out = ROOT.TFile( 'ntuple_flat.root', 'recreate')
 ntuple   = ROOT.TTree( 'ntuple', 'ntuple' )
 
@@ -95,8 +96,8 @@ bCosAlphaBS                      = array('d', [-99.]);  newbr.append(bCosAlphaBS
 # bCosAlphaBSE                     = array('d', [-99.]);  newbr.append(bCosAlphaBSE)
 bLBS                             = array('d', [-99.]);  newbr.append(bLBS)
 bLBSE                            = array('d', [-99.]);  newbr.append(bLBSE)
-# bDCABS                           = array('d', [-99.]);  newbr.append(bDCABS)
-# bDCABSE                          = array('d', [-99.]);  newbr.append(bDCABSE)
+bDCABS                           = array('d', [-99.]);  newbr.append(bDCABS)
+bDCABSE                          = array('d', [-99.]);  newbr.append(bDCABSE)
 # 
 kstMass                          = array('d', [-99.]);  newbr.append(kstMass)
 kstMassE                         = array('d', [-99.]);  newbr.append(kstMassE)
@@ -110,14 +111,14 @@ kkMass                           = array('d', [-99.]);  newbr.append(kkMass)
 
 mumuMass                         = array('d', [-99.]);  newbr.append(mumuMass)
 # mumuMassE                        = array('d', [-99.]);  newbr.append(mumuMassE)
-# mumuVtxCL                        = array('d', [-99.]);  newbr.append(mumuVtxCL)
-# mumuVtxX                         = array('d', [-99.]);  newbr.append(mumuVtxX)
-# mumuVtxY                         = array('d', [-99.]);  newbr.append(mumuVtxY)
-# mumuVtxZ                         = array('d', [-99.]);  newbr.append(mumuVtxZ)
-# mumuCosAlphaBS                   = array('d', [-99.]);  newbr.append(mumuCosAlphaBS)
+mumuVtxCL                        = array('d', [-99.]);  newbr.append(mumuVtxCL)
+mumuVtxX                         = array('d', [-99.]);  newbr.append(mumuVtxX)
+mumuVtxY                         = array('d', [-99.]);  newbr.append(mumuVtxY)
+mumuVtxZ                         = array('d', [-99.]);  newbr.append(mumuVtxZ)
+mumuCosAlphaBS                   = array('d', [-99.]);  newbr.append(mumuCosAlphaBS)
 # mumuCosAlphaBSE                  = array('d', [-99.]);  newbr.append(mumuCosAlphaBSE)
-# mumuLBS                          = array('d', [-99.]);  newbr.append(mumuLBS)
-# mumuLBSE                         = array('d', [-99.]);  newbr.append(mumuLBSE)
+mumuLBS                          = array('d', [-99.]);  newbr.append(mumuLBS)
+mumuLBSE                         = array('d', [-99.]);  newbr.append(mumuLBSE)
 # mumuDCA                          = array('d', [-99.]);  newbr.append(mumuDCA)
 # 
 
@@ -180,12 +181,12 @@ kstTrkpNPixHits                  = array('d', [-99.]);  newbr.append(kstTrkpNPix
 kstTrkpNTrkHits                  = array('d', [-99.]);  newbr.append(kstTrkpNTrkHits)
 # kstTrkpMuMatch                   = array('d', [-99.]);  newbr.append(kstTrkpMuMatch)
 tagB0                            = array('d', [-99.]);  newbr.append(tagB0)
-# 
-# bMinusVtxCL                      = array('d', [-99.]);  newbr.append(bMinusVtxCL      )
-# bMinusCosAlphaBS                 = array('d', [-99.]);  newbr.append(bMinusCosAlphaBS )
-# bPlusVtxCL                       = array('d', [-99.]);  newbr.append(bPlusVtxCL       )
-# bPlusCosAlphaBS                  = array('d', [-99.]);  newbr.append(bPlusCosAlphaBS  )
-# 
+
+bMinusVtxCL                      = array('d', [-99.]);  newbr.append(bMinusVtxCL      )
+bMinusCosAlphaBS                 = array('d', [-99.]);  newbr.append(bMinusCosAlphaBS )
+bPlusVtxCL                       = array('d', [-99.]);  newbr.append(bPlusVtxCL       )
+bPlusCosAlphaBS                  = array('d', [-99.]);  newbr.append(bPlusCosAlphaBS  )
+
 mumGlobalMuon                    = array('d',[-99.]); newbr.append(mumGlobalMuon             )   
 mumTrackerMuon                   = array('d',[-99.]); newbr.append(mumTrackerMuon            )   
 # mumStandAloneMuon                = array('d',[-99.]); newbr.append(mumStandAloneMuon         )   
@@ -196,15 +197,15 @@ mupTrackerMuon                   = array('d',[-99.]); newbr.append(mupTrackerMuo
 # mupStandAloneMuon                = array('d',[-99.]); newbr.append(mupStandAloneMuon         )   
 # mupTMOneStationTight             = array('d',[-99.]); newbr.append(mupTMOneStationTight      )   
 # mupTMOneStationLoose             = array('d',[-99.]); newbr.append(mupTMOneStationLoose      )   
-# kstTrkmGlobalMuon                = array('d',[-99.]); newbr.append(kstTrkmGlobalMuon             )   
-# kstTrkmTrackerMuon               = array('d',[-99.]); newbr.append(kstTrkmTrackerMuon            )   
+kstTrkmGlobalMuon                = array('d',[-99.]); newbr.append(kstTrkmGlobalMuon             )   
+kstTrkmTrackerMuon               = array('d',[-99.]); newbr.append(kstTrkmTrackerMuon            )   
 # kstTrkmStandAloneMuon            = array('d',[-99.]); newbr.append(kstTrkmStandAloneMuon         )   
 # kstTrkmGlobalMuonPromptTight     = array('d',[-99.]); newbr.append(kstTrkmGlobalMuonPromptTight  )   
 # kstTrkmTMOneStationTight         = array('d',[-99.]); newbr.append(kstTrkmTMOneStationTight      )   
 # kstTrkmTMOneStationLoose         = array('d',[-99.]); newbr.append(kstTrkmTMOneStationLoose      )   
 # kstTrkmTrackerMuonArbitrated     = array('d',[-99.]); newbr.append(kstTrkmTrackerMuonArbitrated  )   
-# kstTrkpGlobalMuon                = array('d',[-99.]); newbr.append(kstTrkpGlobalMuon             )   
-# kstTrkpTrackerMuon               = array('d',[-99.]); newbr.append(kstTrkpTrackerMuon            )   
+kstTrkpGlobalMuon                = array('d',[-99.]); newbr.append(kstTrkpGlobalMuon             )   
+kstTrkpTrackerMuon               = array('d',[-99.]); newbr.append(kstTrkpTrackerMuon            )   
 # kstTrkpStandAloneMuon            = array('d',[-99.]); newbr.append(kstTrkpStandAloneMuon         )   
 # kstTrkpGlobalMuonPromptTight     = array('d',[-99.]); newbr.append(kstTrkpGlobalMuonPromptTight  )   
 # kstTrkpTMOneStationTight         = array('d',[-99.]); newbr.append(kstTrkpTMOneStationTight      )   
@@ -234,9 +235,9 @@ mumEta                           = array('d',[-99.]); newbr.append( mumEta      
 mupEta                           = array('d',[-99.]); newbr.append( mupEta       )   
 kstTrkmEta                       = array('d',[-99.]); newbr.append( kstTrkmEta   )   
 kstTrkpEta                       = array('d',[-99.]); newbr.append( kstTrkpEta   )   
-# 
-# mmk1                              = array('d',[-99.]); newbr.append( mmk1          )   
-# mmk2                              = array('d',[-99.]); newbr.append( mmk2          )   
+
+mmk1                              = array('d',[-99.]); newbr.append( mmk1          )   
+mmk2                              = array('d',[-99.]); newbr.append( mmk2          )   
 dR_mum_trkm                       = array('d',[-99.]); newbr.append( dR_mum_trkm   )          
 dR_mup_trkp                       = array('d',[-99.]); newbr.append( dR_mup_trkp   )          
 
@@ -283,8 +284,8 @@ ntuple.Branch('bCosAlphaBS',            bCosAlphaBS,                            
 # ntuple.Branch('bCosAlphaBSE',           bCosAlphaBSE,                           'bCosAlphaBSE/D')
 ntuple.Branch('bLBS',                   bLBS,                                   'bLBS/D')
 ntuple.Branch('bLBSE',                  bLBSE,                                  'bLBSE/D')
-# ntuple.Branch('bDCABS',                 bDCABS,                                 'bDCABS/D')
-# ntuple.Branch('bDCABSE',                bDCABSE,                                'bDCABSE/D')
+ntuple.Branch('bDCABS',                 bDCABS,                                 'bDCABS/D')
+ntuple.Branch('bDCABSE',                bDCABSE,                                'bDCABSE/D')
 # 
 ntuple.Branch('kstMass',                kstMass,                                'kstMass/D')
 ntuple.Branch('kstMassE',               kstMassE,                               'kstMassE/D')
@@ -297,14 +298,14 @@ ntuple.Branch('kstVtxZ',                kstVtxZ,                                
 ntuple.Branch('kkMass',                 kkMass,                                 'kkMass/D')
 ntuple.Branch('mumuMass',               mumuMass,                               'mumuMass/D')
 # ntuple.Branch('mumuMassE',              mumuMassE,                              'mumuMassE/D')
-# ntuple.Branch('mumuVtxCL',              mumuVtxCL,                              'mumuVtxCL/D')
-# ntuple.Branch('mumuVtxX',               mumuVtxX,                               'mumuVtxX/D')
-# ntuple.Branch('mumuVtxY',               mumuVtxY,                               'mumuVtxY/D')
-# ntuple.Branch('mumuVtxZ',               mumuVtxZ,                               'mumuVtxZ/D')
-# ntuple.Branch('mumuCosAlphaBS',         mumuCosAlphaBS,                         'mumuCosAlphaBS/D')
+ntuple.Branch('mumuVtxCL',              mumuVtxCL,                              'mumuVtxCL/D')
+ntuple.Branch('mumuVtxX',               mumuVtxX,                               'mumuVtxX/D')
+ntuple.Branch('mumuVtxY',               mumuVtxY,                               'mumuVtxY/D')
+ntuple.Branch('mumuVtxZ',               mumuVtxZ,                               'mumuVtxZ/D')
+ntuple.Branch('mumuCosAlphaBS',         mumuCosAlphaBS,                         'mumuCosAlphaBS/D')
 # ntuple.Branch('mumuCosAlphaBSE',        mumuCosAlphaBSE,                        'mumuCosAlphaBSE/D')
-# ntuple.Branch('mumuLBS',                mumuLBS,                                'mumuLBS/D')
-# ntuple.Branch('mumuLBSE',               mumuLBSE,                               'mumuLBSE/D')
+ntuple.Branch('mumuLBS',                mumuLBS,                                'mumuLBS/D')
+ntuple.Branch('mumuLBSE',               mumuLBSE,                               'mumuLBSE/D')
 # ntuple.Branch('mumuDCA',                mumuDCA,                                'mumuDCA/D')
 # 
 
@@ -366,12 +367,12 @@ ntuple.Branch('tagB0',                  tagB0,                                  
 ntuple.Branch('cos_theta_l' ,           cos_theta_l ,                           'cos_theta_l/D')
 ntuple.Branch('cos_theta_k' ,           cos_theta_k ,                           'cos_theta_k/D')
 ntuple.Branch('phi_kst_mumu',           phi_kst_mumu,                           'phi_kst_mumu/D')
-# 
-# ntuple.Branch('bMinusVtxCL',            bMinusVtxCL     ,                       'bMinusVtxCL/D')
-# ntuple.Branch('bMinusCosAlphaBS',       bMinusCosAlphaBS,                       'bMinusCosAlphaBS/D')
-# ntuple.Branch('bPlusVtxCL',             bPlusVtxCL      ,                       'bPlusVtxCL/D')
-# ntuple.Branch('bPlusCosAlphaBS',        bPlusCosAlphaBS ,                       'bPlusCosAlphaBS/D')
-# 
+
+ntuple.Branch('bMinusVtxCL',            bMinusVtxCL     ,                       'bMinusVtxCL/D')
+ntuple.Branch('bMinusCosAlphaBS',       bMinusCosAlphaBS,                       'bMinusCosAlphaBS/D')
+ntuple.Branch('bPlusVtxCL',             bPlusVtxCL      ,                       'bPlusVtxCL/D')
+ntuple.Branch('bPlusCosAlphaBS',        bPlusCosAlphaBS ,                       'bPlusCosAlphaBS/D')
+
 ntuple.Branch('mumGlobalMuon',             mumGlobalMuon              ,               'mumGlobalMuon/D')
 ntuple.Branch('mumTrackerMuon',            mumTrackerMuon             ,               'mumTrackerMuon/D')
 # ntuple.Branch('mumStandAloneMuon',         mumStandAloneMuon          ,               'mumStandAloneMuon/D')
@@ -383,15 +384,15 @@ ntuple.Branch('mupTrackerMuon',            mupTrackerMuon             ,         
 # ntuple.Branch('mupTMOneStationTight',      mupTMOneStationTight       ,               'mupTMOneStationTight/D')
 # ntuple.Branch('mupTMOneStationLoose',      mupTMOneStationLoose       ,               'mupTMOneStationLoose/D')
 # 
-# ntuple.Branch('kstTrkmGlobalMuon',            kstTrkmGlobalMuon             ,               'kstTrkmGlobalMuon/D')
-# ntuple.Branch('kstTrkmTrackerMuon',           kstTrkmTrackerMuon            ,               'kstTrkmTrackerMuon/D')
+ntuple.Branch('kstTrkmGlobalMuon',            kstTrkmGlobalMuon             ,               'kstTrkmGlobalMuon/D')
+ntuple.Branch('kstTrkmTrackerMuon',           kstTrkmTrackerMuon            ,               'kstTrkmTrackerMuon/D')
 # ntuple.Branch('kstTrkmStandAloneMuon',        kstTrkmStandAloneMuon         ,               'kstTrkmStandAloneMuon/D')
 # ntuple.Branch('kstTrkmGlobalMuonPromptTight', kstTrkmGlobalMuonPromptTight  ,               'kstTrkmGlobalMuonPromptTight/D')
 # ntuple.Branch('kstTrkmTMOneStationTight',     kstTrkmTMOneStationTight      ,               'kstTrkmTMOneStationTight/D')
 # ntuple.Branch('kstTrkmTMOneStationLoose',     kstTrkmTMOneStationLoose      ,               'kstTrkmTMOneStationLoose/D')
 # ntuple.Branch('kstTrkmTrackerMuonArbitrated', kstTrkmTrackerMuonArbitrated  ,               'kstTrkmTrackerMuonArbitrated/D')
-# ntuple.Branch('kstTrkpGlobalMuon',            kstTrkpGlobalMuon             ,               'kstTrkpGlobalMuon/D')
-# ntuple.Branch('kstTrkpTrackerMuon',           kstTrkpTrackerMuon            ,               'kstTrkpTrackerMuon/D')
+ntuple.Branch('kstTrkpGlobalMuon',            kstTrkpGlobalMuon             ,               'kstTrkpGlobalMuon/D')
+ntuple.Branch('kstTrkpTrackerMuon',           kstTrkpTrackerMuon            ,               'kstTrkpTrackerMuon/D')
 # ntuple.Branch('kstTrkpStandAloneMuon',        kstTrkpStandAloneMuon         ,               'kstTrkpStandAloneMuon/D')
 # ntuple.Branch('kstTrkpGlobalMuonPromptTight', kstTrkpGlobalMuonPromptTight  ,               'kstTrkpGlobalMuonPromptTight/D')
 # ntuple.Branch('kstTrkpTMOneStationTight',     kstTrkpTMOneStationTight      ,               'kstTrkpTMOneStationTight/D')
@@ -421,9 +422,9 @@ ntuple.Branch('mumEta',     mumEta       ,               'mumEta/D')
 ntuple.Branch('mupEta',     mupEta       ,               'mupEta/D')
 ntuple.Branch('kstTrkmEta', kstTrkmEta   ,               'kstTrkmEta/D')
 ntuple.Branch('kstTrkpEta', kstTrkpEta   ,               'kstTrkpEta/D')
-# 
-# ntuple.Branch('mmk1',        mmk1          ,               'mmk1/D')
-# ntuple.Branch('mmk2',        mmk2          ,               'mmk2/D')
+
+ntuple.Branch('mmk1',        mmk1          ,               'mmk1/D')
+ntuple.Branch('mmk2',        mmk2          ,               'mmk2/D')
 ntuple.Branch('dR_mum_trkm', dR_mum_trkm   ,               'dR_mum_trkm/D')
 ntuple.Branch('dR_mup_trkp', dR_mup_trkp   ,               'dR_mup_trkp/D')
 # 
@@ -485,7 +486,9 @@ for i, ev in enumerate(tree_lmnr):
         mum_index = ev.BToTrkTrkMuMu_l1_idx[icand] if ev.TrgMatchMuon_charge[ev.BToTrkTrkMuMu_l1_idx[icand]] < 0 else ev.BToTrkTrkMuMu_l2_idx[icand] 
         tkp_index = ev.BToTrkTrkMuMu_trk1_idx[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_trk2_idx[icand] 
         tkm_index = ev.BToTrkTrkMuMu_trk1_idx[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] < 0 else ev.BToTrkTrkMuMu_trk2_idx[icand] 
-        ditk_index = ev.BToTrkTrkMuMu_ditrack_idx[icand]
+        ditk_index = icand
+#         ditk_index = ev.BToTrkTrkMuMu_ditrack_idx[icand]
+        dimu_index = ev.BToTrkTrkMuMu_ll_idx[icand]
 
         l1_is_plus  = True if ev.TrgMatchMuon_charge[ev.BToTrkTrkMuMu_l1_idx[icand]] > 0 else False
         tk1_is_plus = True if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else False
@@ -498,6 +501,8 @@ for i, ev in enumerate(tree_lmnr):
         runN[0]                        = ev.run
 #         recoVtxN[0]                    = ev.PV.npvsGood
 #         trig[0]                        = paths.index(ev.TrigTable[0].split('_v')[0])
+
+#L1_DoubleMu3er2p0_SQ_OS_dR_Max1p4 OR L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p6 OR L1_DoubleMu0er1p4_OQ_OS_dEta_Max1p6 OR L1_DoubleMu0er2p0_SQ_OS_dEta_Max1p5 OR L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4 OR L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4 OR L1_DoubleMu4p5_SQ_OS_dR_Max1p2 OR L1_DoubleMu4_SQ_OS_dR_Max1p2
 # 
 #         l1_00_1p5[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p5_SQ_OS_dR_Max1p4')
 #         l1_00_1p4[0]                   = findFiringL1(ev.L1Table, ev.L1Prescales, 'L1_DoubleMu0er1p4_SQ_OS_dR_Max1p4')
@@ -514,8 +519,6 @@ for i, ev in enumerate(tree_lmnr):
 #         bsY[0]                         = ev.bsY
 # 
         bPt[0]                         = ev.BToTrkTrkMuMu_pt[icand]
-        ## why index of dimuon is not there!?
-        ## for now let's build it from mu and mu2, to be changed later
         
         mumPt[0]                       = ev.BToTrkTrkMuMu_fit_l2_pt[icand] if l1_is_plus else ev.BToTrkTrkMuMu_fit_l1_pt[icand]
         mupPt[0]                       = ev.BToTrkTrkMuMu_fit_l1_pt[icand] if l1_is_plus else ev.BToTrkTrkMuMu_fit_l2_pt[icand]
@@ -573,29 +576,32 @@ for i, ev in enumerate(tree_lmnr):
 #         bCosAlphaBSE[0]                = ev.bCosAlphaBSE[icand]  ## not available, not used by us later
         bLBS[0]                        = ev.BToTrkTrkMuMu_l_xy[icand]
         bLBSE[0]                       = ev.BToTrkTrkMuMu_l_xy_unc[icand]
-#         bDCABS[0]                      = ev.bDCABS[icand] ### this is missing
-#         bDCABSE[0]                     = ev.bDCABSE[icand] ### this is missing
+        bDCABS[0]                      = ev.BToTrkTrkMuMu_dca[icand] ### this is missing
+        bDCABSE[0]                     = ev.BToTrkTrkMuMu_dcaErr[icand]    ### this is missing
 
         kstMass[0]                     = ev.BToTrkTrkMuMu_fit_ditrack_mass_Kpi[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_fit_ditrack_mass_piK[icand]
 #         kstMassE[0]                    = ev.DiTrack_fit_massErr_Kpi[ditk_index] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.DiTrack_fit_massErr_piK[icand]  ## missing! not used
         kstBarMass[0]                  = ev.BToTrkTrkMuMu_fit_ditrack_mass_piK[icand] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.BToTrkTrkMuMu_fit_ditrack_mass_Kpi[icand] 
 #         kstBarMassE[0]                 = ev.DiTrack_fit_massErr_piK[ditk_index] if ev.Track_charge[ev.BToTrkTrkMuMu_trk1_idx[icand]] > 0 else ev.DiTrack_fit_massErr_Kpi[icand] ## missing! not used
+
         kstVtxCL[0]                    = ev.DiTrack_sv_prob[ditk_index]
         kstVtxX[0]                     = ev.DiTrack_vtx_x[ditk_index]
         kstVtxY[0]                     = ev.DiTrack_vtx_y[ditk_index]
         kstVtxZ[0]                     = ev.DiTrack_vtx_z[ditk_index]
         kkMass[0]                      = ev.DiTrack_fit_mass_KK[ditk_index]
+#         print (ev.DiTrack_pt[ditk_index])
+#         print ('nDiTrack: ', ev.nDiTrack, ' -> looking for index:', ditk_index)
 
         mumuMass[0]                    = mumu_lv_tmp.M()
 #         mumuMassE[0]                   = ev.mumuMassE[icand]
-#         mumuVtxCL[0]                   = ev.mumuVtxCL[icand]
-#         mumuVtxX[0]                    = ev.mumuVtxX[icand]
-#         mumuVtxY[0]                    = ev.mumuVtxY[icand]
-#         mumuVtxZ[0]                    = ev.mumuVtxZ[icand]
-#         mumuCosAlphaBS[0]              = ev.mumuCosAlphaBS[icand]
+        mumuVtxCL[0]                   = ev.MuMu_svprob[dimu_index] 
+        mumuVtxX[0]                    = ev.MuMu_vtx_x[dimu_index]
+        mumuVtxY[0]                    = ev.MuMu_vtx_y[dimu_index]
+        mumuVtxZ[0]                    = ev.MuMu_vtx_z[dimu_index]
+        mumuCosAlphaBS[0]              = ev.MuMu_fit_cos2D[dimu_index]
 #         mumuCosAlphaBSE[0]             = ev.mumuCosAlphaBSE[icand]
-#         mumuLBS[0]                     = ev.mumuLBS[icand]
-#         mumuLBSE[0]                    = ev.mumuLBSE[icand]
+        mumuLBS[0]                     = ev.MuMu_l_xy[dimu_index]
+        mumuLBSE[0]                    = ev.MuMu_l_xy_unc[dimu_index]
 #         mumuDCA[0]                     = ev.mumuDCA[icand]
 #         
         ### mum_index
@@ -654,9 +660,15 @@ for i, ev in enumerate(tree_lmnr):
 #         kstTrkmMinIP2D[0]              = ev.kstTrkmMinIP2D[icand]
 #         kstTrkmMinIP2DE[0]             = ev.kstTrkmMinIP2DE[icand]
 # 
-#         trkmCategoryDict = muonCategory(ev.kstTrkmMuMatch[icand])
-#         kstTrkmGlobalMuon            [0] = trkmCategoryDict['GlobalMuon']
-#         kstTrkmTrackerMuon           [0] = trkmCategoryDict['TrackerMuon']
+        ## this is not always available (if the muon isn't passing the basic selection it won't be saved)
+        try:
+          kstTrkmGlobalMuon            [0] = ev.TrgMatchMuon_isGlobal[ev.Track_isMatchedToMuon_Idx[tkm_index]]
+          kstTrkmTrackerMuon           [0] = ev.TrgMatchMuon_isTracker[ev.Track_isMatchedToMuon_Idx[tkm_index]]
+        except:
+          kstTrkmGlobalMuon            [0] = -1
+          kstTrkmTrackerMuon           [0] = -1
+
+
 #         kstTrkmStandAloneMuon        [0] = trkmCategoryDict['StandAloneMuon']
 #         kstTrkmTrackerMuonArbitrated [0] = trkmCategoryDict['TrackerMuonArbitrated']
 #         kstTrkmTMOneStationTight     [0] = trkmCategoryDict['TMOneStationTight']
@@ -672,23 +684,36 @@ for i, ev in enumerate(tree_lmnr):
 #         kstTrkpMinIP2D[0]              = ev.kstTrkpMinIP2D[icand]
 #         kstTrkpMinIP2DE[0]             = ev.kstTrkpMinIP2DE[icand]
 # 
-#         trkpCategoryDict = muonCategory(ev.kstTrkpMuMatch[icand])
           ### in BPH nano there's Track_isMatchedToMuon
-#         kstTrkpGlobalMuon            [0] = trkpCategoryDict['GlobalMuon']
-#         kstTrkpTrackerMuon           [0] = trkpCategoryDict['TrackerMuon']
+        try:
+          kstTrkpGlobalMuon            [0] = ev.TrgMatchMuon_isGlobal[ev.Track_isMatchedToMuon_Idx[tkp_index]]
+          kstTrkpTrackerMuon           [0] = ev.TrgMatchMuon_isTracker[ev.Track_isMatchedToMuon_Idx[tkp_index]]
+        except:
+          kstTrkpGlobalMuon            [0] = -1
+          kstTrkpTrackerMuon           [0] = -1
+
+
 #         kstTrkpStandAloneMuon        [0] = trkpCategoryDict['StandAloneMuon']
 #         kstTrkpTrackerMuonArbitrated [0] = trkpCategoryDict['TrackerMuonArbitrated']
 #         kstTrkpTMOneStationTight     [0] = trkpCategoryDict['TMOneStationTight']
 #         kstTrkpTMOneStationLoose     [0] = trkpCategoryDict['TMOneStationLoose']
 # 
         tagB0[0]                      = FlavorTagger(kstMass[0], kstBarMass[0])  ## 1 if B0, 0 if B0bar
-# 
-#         bMinusVtxCL[0]               = ev.bMinusVtxCL[icand]      
-#         bMinusCosAlphaBS[0]          = ev.bMinusCosAlphaBS[icand]
-#         bPlusVtxCL[0]                = ev.bPlusVtxCL[icand]    
-#         bPlusCosAlphaBS[0]           = ev.bPlusCosAlphaBS[icand]  
-# 
-# 
+
+        ## loop on mumuK cands:
+        ## only those with cosine > 0.9 are saved, so it will be different from what we had
+        for ibplus in range(ev.nBToKMuMu):
+          if ev.BToKMuMu_l1_idx[ibplus] == ev.BToTrkTrkMuMu_l1_idx[icand] and \
+             ev.BToKMuMu_l2_idx[ibplus] == ev.BToTrkTrkMuMu_l2_idx[icand] :
+            if ev.BToKMuMu_k_idx[ibplus] == tkp_index:
+              bPlusVtxCL[0] = ev.BToKMuMu_svprob[ibplus]      
+              bPlusCosAlphaBS[0] = ev.BToKMuMu_fit_cos2D[ibplus]      
+            elif ev.BToKMuMu_k_idx[ibplus] == tkm_index:
+              bMinusVtxCL[0] = ev.BToKMuMu_svprob[ibplus]      
+              bMinusCosAlphaBS[0] = ev.BToKMuMu_fit_cos2D[ibplus]      
+            else:
+              continue  
+          
         cos_theta_l[0], cos_theta_k[0], phi_kst_mumu[0] = addVarsFromPtEtaPhi(
         	tagB0[0],
         	mumuPt[0],    mumuEta[0],    mumuPhi[0], mumuMass[0],
@@ -699,13 +724,13 @@ for i, ev in enumerate(tree_lmnr):
         	kstPt[0],     kstEta[0],     kstPhi[0],   kstMass[0], kstBarMass[0],
         	bPt[0],       bEta[0],       bPhi[0],     bMass[0],   bBarMass[0]
         )
-# 
-#         mmk1[0], mmk2[0] = addMMKVars(
-#                           mumPt[0],      mumEta[0],      mumPhi[0],  
-#                           mupPt[0],      mupEta[0],      mupPhi[0],  
-#                           kstTrkpPt[0],  kstTrkpEta[0],  kstTrkpPhi[0],
-#                           kstTrkmPt[0],  kstTrkmEta[0],  kstTrkmPhi[0]
-#                           )
+
+        mmk1[0], mmk2[0] = addMMKVars(
+                          mumPt[0],      mumEta[0],      mumPhi[0],  
+                          mupPt[0],      mupEta[0],      mupPhi[0],  
+                          kstTrkpPt[0],  kstTrkpEta[0],  kstTrkpPhi[0],
+                          kstTrkmPt[0],  kstTrkmEta[0],  kstTrkmPhi[0]
+                          )
         dR_mum_trkm[0] = addDR(mumEta[0], mumPhi[0], kstTrkmEta[0], kstTrkmPhi[0])
         dR_mup_trkp[0] = addDR(mupEta[0], mupPhi[0], kstTrkpEta[0], kstTrkpPhi[0])
 
