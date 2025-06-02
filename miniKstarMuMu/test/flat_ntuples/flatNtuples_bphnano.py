@@ -245,15 +245,10 @@ cos_theta_l                      = array('d', [-99.]); newbr.append(cos_theta_l)
 cos_theta_k                      = array('d', [-99.]); newbr.append(cos_theta_k)
 phi_kst_mumu                     = array('d', [-99.]); newbr.append(phi_kst_mumu)
 
-# mumIsoPt_dr03                    = array('d',[0.]); isobr.append( mumIsoPt_dr03   )   
-# mupIsoPt_dr03                    = array('d',[0.]); isobr.append( mupIsoPt_dr03   )   
-# kstTrkmIsoPt_dr03                = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr03   )   
-# kstTrkpIsoPt_dr03                = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr03   )   
-# 
-# mumIsoPt_dr04                    = array('d',[0.]); isobr.append( mumIsoPt_dr04   )   
-# mupIsoPt_dr04                    = array('d',[0.]); isobr.append( mupIsoPt_dr04   )   
-# kstTrkmIsoPt_dr04                = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr04   )   
-# kstTrkpIsoPt_dr04                = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr04   )   
+mumIsoPt_dr04                    = array('d',[0.]); isobr.append( mumIsoPt_dr04   )   
+mupIsoPt_dr04                    = array('d',[0.]); isobr.append( mupIsoPt_dr04   )   
+kstTrkmIsoPt_dr04                = array('d',[0.]); isobr.append( kstTrkmIsoPt_dr04   )   
+kstTrkpIsoPt_dr04                = array('d',[0.]); isobr.append( kstTrkpIsoPt_dr04   )   
 # 
 # '''
 # for i in branches:
@@ -427,20 +422,11 @@ ntuple.Branch('mmk1',        mmk1          ,               'mmk1/D')
 ntuple.Branch('mmk2',        mmk2          ,               'mmk2/D')
 ntuple.Branch('dR_mum_trkm', dR_mum_trkm   ,               'dR_mum_trkm/D')
 ntuple.Branch('dR_mup_trkp', dR_mup_trkp   ,               'dR_mup_trkp/D')
-# 
-# 
-# 
-# ntuple.Branch('mumIsoPt_dr03'    , mumIsoPt_dr03    , 'mumIsoPt_dr03/D'   )   
-# ntuple.Branch('mupIsoPt_dr03'    , mupIsoPt_dr03    , 'mupIsoPt_dr03/D'   )   
-# ntuple.Branch('kstTrkmIsoPt_dr03', kstTrkmIsoPt_dr03, 'kstTrkmIsoPt_dr03/D'   )   
-# ntuple.Branch('kstTrkpIsoPt_dr03', kstTrkpIsoPt_dr03, 'kstTrkpIsoPt_dr03/D'   )   
-# 
-# ntuple.Branch('mumIsoPt_dr04'    , mumIsoPt_dr04    , 'mumIsoPt_dr04/D'   )   
-# ntuple.Branch('mupIsoPt_dr04'    , mupIsoPt_dr04    , 'mupIsoPt_dr04/D'   )   
-# ntuple.Branch('kstTrkmIsoPt_dr04', kstTrkmIsoPt_dr04, 'kstTrkmIsoPt_dr04/D'   )   
-# ntuple.Branch('kstTrkpIsoPt_dr04', kstTrkpIsoPt_dr04, 'kstTrkpIsoPt_dr04/D'   )   
-# 
 
+ntuple.Branch('mumIsoPt_dr04'    , mumIsoPt_dr04    , 'mumIsoPt_dr04/D'   )   
+ntuple.Branch('mupIsoPt_dr04'    , mupIsoPt_dr04    , 'mupIsoPt_dr04/D'   )   
+ntuple.Branch('kstTrkmIsoPt_dr04', kstTrkmIsoPt_dr04, 'kstTrkmIsoPt_dr04/D'   )   
+ntuple.Branch('kstTrkpIsoPt_dr04', kstTrkpIsoPt_dr04, 'kstTrkpIsoPt_dr04/D'   )   
 
 
 numEvents = tree_lmnr.GetEntries()
@@ -496,7 +482,7 @@ for i, ev in enumerate(tree_lmnr):
 
         ## only triggering muons
         if not ((ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mum_index] and ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mup_index]) or \
-                (ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mum_index] and ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mup_index]): 
+                (ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mum_index] and ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mup_index])): 
           continue
           
         
@@ -745,61 +731,12 @@ for i, ev in enumerate(tree_lmnr):
 #         ###########  mu - isolation ####################
         ## this is different by default
         ## I'd suggest that for validation we remove this selection and then when re-optimising the analysis we can use the isolation that is available
-#         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
-#         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-#         
-#         if len( ev.mumIsoPt[icand] ) > 0:
-#             for j,isoi in enumerate(ev.mumIsoPt[icand]):
-#                 if ev.mumIsodR[icand][j] < 0.3:
-#                     val_isoPt_dr03 += isoi
-#                 if ev.mumIsodR[icand][j] < 0.4:
-#                     val_isoPt_dr04 += isoi
-# 
-#             mumIsoPt_dr03[0] = val_isoPt_dr03
-#             mumIsoPt_dr04[0] = val_isoPt_dr04
-# 
-#         ###########  mu + isolation ####################
-#         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
-#         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-#         
-#         if len( ev.mupIsoPt[icand] ) > 0:
-#             for j,isoi in enumerate(ev.mupIsoPt[icand]):
-#                 if ev.mupIsodR[icand][j] < 0.3:
-#                     val_isoPt_dr03 += isoi
-#                 if ev.mupIsodR[icand][j] < 0.4:
-#                     val_isoPt_dr04 += isoi
-# 
-#             mupIsoPt_dr03[0] = val_isoPt_dr03
-#             mupIsoPt_dr04[0] = val_isoPt_dr04
-# 
-#  
-#         ###########  trk - isolation ####################
-#         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
-#         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-#         
-#         if len( ev.kstTrkmIsoPt[icand] ) > 0:
-#             for j,isoi in enumerate(ev.kstTrkmIsoPt[icand]):
-#                 if ev.kstTrkmIsodR[icand][j] < 0.3:
-#                     val_isoPt_dr03 += isoi
-#                 if ev.kstTrkmIsodR[icand][j] < 0.4:
-#                     val_isoPt_dr04 += isoi
-# 
-#             kstTrkmIsoPt_dr03[0] = val_isoPt_dr03
-#             kstTrkmIsoPt_dr04[0] = val_isoPt_dr04
-#         ###########  trk + isolation ####################
-#         val_isoPt_dr03 = 0;     val_isoP_dr03  = 0;
-#         val_isoPt_dr04 = 0;     val_isoP_dr04  = 0;
-# 
-#         if len( ev.kstTrkpIsoPt[icand] ) > 0:
-#             for j,isoi in enumerate(ev.kstTrkpIsoPt[icand]):
-#                 if ev.kstTrkpIsodR[icand][j] < 0.3:
-#                     val_isoPt_dr03 += isoi
-#                 if ev.kstTrkpIsodR[icand][j] < 0.4:
-#                     val_isoPt_dr04 += isoi
-# 
-#             kstTrkpIsoPt_dr03[0] = val_isoPt_dr03
-#             kstTrkpIsoPt_dr04[0] = val_isoPt_dr04
-# 
+        mupIsoPt_dr04[0] = ev.BToTrkTrkMuMu_l1_iso04[icand] if l1_is_plus else ev.BToTrkTrkMuMu_l2_iso04[icand]
+        mumIsoPt_dr04[0] = ev.BToTrkTrkMuMu_l2_iso04[icand] if l1_is_plus else ev.BToTrkTrkMuMu_l1_iso04[icand]
+
+        kstTrkpIsoPt_dr04[0] =  ev.BToTrkTrkMuMu_trk1_iso04[icand] if tk1_is_plus else ev.BToTrkTrkMuMu_trk2_iso04[icand]
+        kstTrkmIsoPt_dr04[0] =  ev.BToTrkTrkMuMu_trk2_iso04[icand] if tk1_is_plus else ev.BToTrkTrkMuMu_trk1_iso04[icand]
+
         ntuple. Fill()
 
 
