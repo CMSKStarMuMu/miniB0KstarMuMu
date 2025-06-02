@@ -495,8 +495,10 @@ for i, ev in enumerate(tree_lmnr):
         
 
         ## only triggering muons
-        if not (ev.TrgMatchMuon_isTriggering[mum_index] and ev.TrgMatchMuon_isTriggering[mup_index]): 
+        if not ((ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mum_index] and ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mup_index]) or \
+                (ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mum_index] and ev.TrgMatchMuon_fired_HLT_DoubleMu4_3_LowMass[mup_index]): 
           continue
+          
         
         ## skim on softMuID    
         if skimSoftMu and not (ev.TrgMatchMuon_softId[mum_index] > 0 and ev.TrgMatchMuon_softId[mup_index]):
