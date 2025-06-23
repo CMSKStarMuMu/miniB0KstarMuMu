@@ -23,7 +23,7 @@ from array              import array
 from PhysicsTools.HeppyCore.utils.deltar import deltaR, deltaPhi
 
 import sys, math, itertools
-sys.path.append('/gwpool/users/fiorendi/p5prime/run3/CMSSW_14_2_2/src/miniB0KstarMuMu/miniKstarMuMu')
+sys.path.append('/gwpool/users/fiorendi/p5prime/run3/CMSSW_14_2_2/src/miniB0KstarMuMu/miniKstarMuMu/')
 from utils.angular_vars import *
 from utils.utils import *
 
@@ -36,7 +36,6 @@ from ROOT import TLorentzVector
 # type       = args.thechan 
 skim       = True
 skimSoftMu = True
-# isNot2016  = False if '2016' in args.sample[0] else True
 paths = [ 
           'HLT_DoubleMu4_LowMassNonResonantTrk_Displaced',
         ]  
@@ -221,6 +220,10 @@ mupPt                            = array('d',[-99.]); newbr.append( mupPt       
 mupCharge                        = array('d',[-99.]); newbr.append( mupCharge        )   ## test for BPHnano
 kstTrkmPt                        = array('d',[-99.]); newbr.append( kstTrkmPt    )   
 kstTrkpPt                        = array('d',[-99.]); newbr.append( kstTrkpPt    )   
+rawmumPt                         = array('d',[-99.]); newbr.append( rawmumPt        )   
+rawmupPt                         = array('d',[-99.]); newbr.append( rawmupPt        )   
+rawTrkmPt                        = array('d',[-99.]); newbr.append( rawTrkmPt    )   
+rawTrkpPt                        = array('d',[-99.]); newbr.append( rawTrkpPt    )   
 bPhi                             = array('d',[-99.]); newbr.append( bPhi         )   
 kstPhi                           = array('d',[-99.]); newbr.append( kstPhi       )   
 mumuPhi                          = array('d',[-99.]); newbr.append( mumuPhi      )   
@@ -403,6 +406,11 @@ ntuple.Branch('mupPt',      mupPt        ,               'mupPt/D')
 ntuple.Branch('mupCharge',  mupCharge    ,               'mupCharge/D')
 ntuple.Branch('kstTrkmPt',  kstTrkmPt    ,               'kstTrkmPt/D')
 ntuple.Branch('kstTrkpPt',  kstTrkpPt    ,               'kstTrkpPt/D')
+ntuple.Branch('rawmumPt',  rawmumPt     ,               'rawmumPt/D')
+ntuple.Branch('rawmupPt',  rawmupPt     ,               'rawmupPt/D')
+ntuple.Branch('rawTrkmPt',  rawTrkmPt    ,               'rawTrkmPt/D')
+ntuple.Branch('rawTrkpPt',  rawTrkpPt    ,               'rawTrkpPt/D')
+
 ntuple.Branch('bPhi',       bPhi         ,               'bPhi/D')
 ntuple.Branch('kstPhi',     kstPhi       ,               'kstPhi/D')
 ntuple.Branch('mumuPhi',    mumuPhi      ,               'mumuPhi/D')
@@ -455,11 +463,6 @@ for i, ev in enumerate(tree_lmnr):
             ev.HLT_DoubleMu4_3_Jpsi > 0):  
             continue  
 
-    ## need to add here the trigger matching for the muons
-    ## maybe using 
-    ## TrgMatchMuon_isTriggering
-    ## ??
-    
     ## now loop on candidates per event
     for icand in range(ev.nBToTrkTrkMuMu):
     
@@ -492,6 +495,7 @@ for i, ev in enumerate(tree_lmnr):
 
         ## per event quantities
         runN[0]                        = ev.run
+        eventN[0]                      = ev.event
 #         recoVtxN[0]                    = ev.PV.npvsGood
 #         trig[0]                        = paths.index(ev.TrigTable[0].split('_v')[0])
 
@@ -518,6 +522,11 @@ for i, ev in enumerate(tree_lmnr):
         mupCharge[0]                   = ev.TrgMatchMuon_charge[mup_index]
         kstTrkmPt[0]                   = ev.BToTrkTrkMuMu_fit_trk2_pt[icand] if tk1_is_plus else ev.BToTrkTrkMuMu_fit_trk1_pt[icand]
         kstTrkpPt[0]                   = ev.BToTrkTrkMuMu_fit_trk1_pt[icand] if tk1_is_plus else ev.BToTrkTrkMuMu_fit_trk2_pt[icand]
+
+        rawmumPt[0]  = ev.TrgMatchMuon_pt[mum_index]
+        rawmupPt[0]  = ev.TrgMatchMuon_pt[mup_index]
+        rawTrkmPt[0] = ev.Track_pt[tkm_index]
+        rawTrkpPt[0] = ev.Track_pt[tkp_index]
         ## this would be the row pT
 #         kstPt[0]                       = ev.DiTrack_pt[ditk_index]
 
