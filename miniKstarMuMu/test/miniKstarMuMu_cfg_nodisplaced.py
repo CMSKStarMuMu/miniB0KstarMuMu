@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("Demo")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 # process.MessageLogger = cms.Service("MessageLogger",
 # 
 #      destinations =  cms.untracked.vstring("long_job_report", 
@@ -13,7 +14,7 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 # )
 
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(4500) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(50000) )
 
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
@@ -25,24 +26,19 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 # It might be better to set the GlobalTag explicitly in productions, otherwise there will be unpredictable effects due to the 
 # automatic selection of the GlobalTag. Since this script is just for tests,we can leave it as is. 
 #
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run3_data')
+process.GlobalTag = GlobalTag(process.GlobalTag, '150X_dataRun3_Prompt_v1')
 #process.GlobalTag.globaltag = cms.string('123X_dataRun3_HLT_v14') ## for data
-
-#process.GlobalTag.globaltag = cms.string('102X_dataRun2_v14') ## for data
 
 process.source = cms.Source("PoolSource",
 #BPark
     fileNames = cms.untracked.vstring(
-    'root://cms-xrd-global.cern.ch///store/data/Run2024C/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/379/416/00000/0134a8bc-c8d4-400e-9508-2a4b222c5431.root',
-#     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/13d368c5-3e9d-43ce-93fb-62ec35ff0b53.root',
-#     'root://cms-xrd-global.cern.ch//store/data/Run2022C/ParkingDoubleMuonLowMass1/MINIAOD/10Dec2022-v3/2540000/010f5c73-45d9-44e9-a1dc-f77f10e09410.root',
+    'root://cms-xrd-global.cern.ch///store/data/Run2025C/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/392/175/00000/07891055-dbe6-4355-83da-fff0d7eea2a8.root',
+#     'root://cms-xrd-global.cern.ch///store/data/Run2024C/ParkingDoubleMuonLowMass0/MINIAOD/PromptReco-v1/000/379/416/00000/0134a8bc-c8d4-400e-9508-2a4b222c5431.root',
     ),
 #     lumisToProcess = cms.untracked.VLuminosityBlockRange('275282:93-275282:94'),
-#     eventsToProcess = cms.untracked.VEventRange(
-#                                                 '276315:34493463',
-#                                                 '276361:515692537',
-#                                                 '276776:2211826216',
-#     ),
+    eventsToProcess = cms.untracked.VEventRange(
+                                                '392175:15603780',
+    ),
 )
 
 taskB0 = cms.Task()
@@ -109,18 +105,18 @@ process.B0KstMuMu = cms.EDAnalyzer("miniKstarMuMu",
     ## Cand pre-selections
     MinB0Mass	     = cms.untracked.double(4.5 ),    # B0 mass lower limit [4.5 GeV/c2]
     MaxB0Mass	     = cms.untracked.double(6.5 ),    # B0 mass upper limit [6.5 GeV/c2]
-    B0VtxCL	     = cms.untracked.double(-1  ),    # B0 Vtx CL [0.01]
+    B0VtxCL	     = cms.untracked.double(0.001),    # B0 Vtx CL [0.01] ## was -1 sara
     KstMass	     = cms.untracked.double(6.0 ),    # K*0 (OR K*0bar) mass window sigma [3.0]
-    HadDCASBS	     = cms.untracked.double(0.  ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
-    HadpT	     = cms.untracked.double(0.7 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
+    HadDCASBS	     = cms.untracked.double(0.2 ),    # hadron DCA/sigma w/respect to BS [0.8] (also in HLT, now is 2)
+    HadpT	     = cms.untracked.double(0.8 ),    # hadron min pT [0.8 GeV/c] (also in HLT)
     MaxB0RoughMass   = cms.untracked.double(20. ),    # B0 mass upper limit  before performing the fit#     electrons = cms.InputTag("slimmedElectrons"),
 
-    printMsg	     = cms.untracked.bool(False)
+    printMsg	     = cms.untracked.bool(True)
 )
 
 process.TFileService = cms.Service('TFileService', 
     fileName = cms.string(
-	'B0ToKstMuMu_miniaod.root'
+	'B0ToKstMuMu_miniaod_newFile_50kevents_udpate.root'
     ), 
     closeFileFast = cms.untracked.bool(True)
 )

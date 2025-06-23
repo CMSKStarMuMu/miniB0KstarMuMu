@@ -120,6 +120,34 @@ def findTriggerMatching(triplets,
 
     return charge_match
 
+
+
+def findTriggerMatchingRun3(pairs, 
+                        rawmumEta,     rawmumPhi,      rawmumPt,
+                        rawmupEta,     rawmupPhi,      rawmupPt,
+                       ):
+
+    offline_online_dr = []
+    charge_match = 0
+    for itr in pairs:
+            
+        dr_mum  = deltaR(rawmumEta,     rawmumPhi,     itr[0].eta, itr[0].phi)
+        dr_mup  = deltaR(rawmupEta,     rawmupPhi,     itr[1].eta, itr[1].phi)
+
+        offline_online_dr.append([dr_mum, dr_mup])
+        
+    ## choose online combination closer in dR, if each dR < 0.1
+    best_match    = 0.3
+    pair_index = -1
+    for im in range(len(offline_online_dr)):
+        if any(abs(t) < 0.1 for t in offline_online_dr[im]):
+            sum_dr =  sum_dr_(offline_online_dr[im])
+            if sum_dr < best_match:
+                best_match   = sum_dr
+                pair_index = im
+
+    return pair_index
+
 sum_dr_ = lambda y : np.sum(np.abs(y))
 
 
