@@ -84,41 +84,34 @@ def findFiringL1(eventL1, eventPrescales, theL1):
     return pre
 
 
-def findTriggerMatching(triplets, 
+def findTriggerMatching(pairs, 
                         rawmumEta,     rawmumPhi,      rawmumPt,
-                        rawmupEta,     rawmupPhi,      rawmupPt,
-                        rawkstTrkmEta, rawkstTrkmPhi,  rawkstTrkmPt,
-                        rawkstTrkpEta, rawkstTrkpPhi,  rawkstTrkpPt
+                        rawmupEta,     rawmupPhi,      rawmupPt
                        ):
 
     offline_online_dr = []
     charge_match = 0
-    for itr in triplets:
+    for itr in pairs:
             
         dr_mum  = deltaR(rawmumEta,     rawmumPhi,     itr[0].eta, itr[0].phi)
         dr_mup  = deltaR(rawmupEta,     rawmupPhi,     itr[1].eta, itr[1].phi)
-        dr_trkm = deltaR(rawkstTrkmEta, rawkstTrkmPhi, itr[2].eta, itr[2].phi) 
-        dr_trkp = deltaR(rawkstTrkpEta, rawkstTrkpPhi, itr[2].eta, itr[2].phi) 
-        match_tk_charge = -1      if dr_trkm < dr_trkp else 1
-        dr_trk          = dr_trkm if dr_trkm < dr_trkp else dr_trkp
 
-        offline_online_dr.append([dr_mum, dr_mup, dr_trk*match_tk_charge])
+        offline_online_dr.append([dr_mum, dr_mup])
         
     ## choose online combination closer in dR, if each dR < 0.1
     best_match    = 0.3
-    triplet_index = -1
+    pairs_index = -1
     for im in range(len(offline_online_dr)):
         if any(abs(t) < 0.1 for t in offline_online_dr[im]):
             sum_dr =  sum_dr_(offline_online_dr[im])
             if sum_dr < best_match:
                 best_match   = sum_dr
-                charge_match = np.sign(offline_online_dr[im][2])
-                triplet_index = im
+                pairs_index = im
         
-    if triplet_index < 0:
+    if pairs_index < 0:
         return charge_match
 
-    return charge_match
+    return True
 
 sum_dr_ = lambda y : np.sum(np.abs(y))
 
